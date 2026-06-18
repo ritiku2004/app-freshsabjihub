@@ -49,9 +49,9 @@ export const QuantityControl = ({
 
 const styles = StyleSheet.create({
   addButton: {
-    backgroundColor: '#E8F5E9', // very light green
+    backgroundColor: theme.colors.primaryLight, 
     borderWidth: 1,
-    borderColor: '#16A34A', // strong green border
+    borderColor: theme.colors.primary,
     borderRadius: moderateScale(6),
     height: moderateScale(28),
     width: moderateScale(68),
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButtonText: {
-    color: '#16A34A',
+    color: theme.colors.primary,
     fontWeight: theme.typography.weights.bold,
     fontSize: theme.typography.sizes.xs + 1,
     letterSpacing: 0.5,
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   controlContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#00C853', // bright green from screenshot
+    backgroundColor: theme.colors.primary, 
     borderRadius: moderateScale(6),
     height: moderateScale(28),
     width: moderateScale(68),

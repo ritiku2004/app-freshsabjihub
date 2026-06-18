@@ -2,20 +2,20 @@ import { moderateScale, rf } from '../utils/responsive';
 
 export const theme = {
   colors: {
-    primary: '#22C55E',       // Fresh Green
-    secondary: '#16A34A',     // Secondary Green
+    primary: '#15803D',       // Darker Rich Green
+    secondary: '#166534',     // Darker Forest Green
     accent: '#F59E0B',        // Orange for offers
     background: '#F8FAFC',    // Light grey-blue background
     cardBackground: '#FFFFFF',// White cards
     textPrimary: '#111827',   // Dark text
     textSecondary: '#6B7280', // Slate gray text
-    success: '#22C55E',       // Green success indicator
+    success: '#15803D',       // Green success indicator
     error: '#EF4444',         // Red error/warning
     border: '#E2E8F0',        // Subtle border
     white: '#FFFFFF',
     lightGray: '#F1F5F9',
     overlay: 'rgba(0, 0, 0, 0.5)',
-    primaryLight: '#E8FBEB',  // For badges and selections
+    primaryLight: '#DCFCE7',  // Light green tint matching new theme
     accentLight: '#FEF3C7',   // For offer labels
   },
   spacing: {

@@ -21,6 +21,8 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(22, 101, 52, 0.2)',
   },
   headerLeft: {
     flexDirection: 'row',

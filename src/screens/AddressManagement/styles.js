@@ -20,6 +20,8 @@ export default StyleSheet.create({
     paddingBottom: moderateScale(22),
     flexDirection: 'row',
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(22, 101, 52, 0.2)',
   },
   headerTitle: {
     fontSize: rf(19),

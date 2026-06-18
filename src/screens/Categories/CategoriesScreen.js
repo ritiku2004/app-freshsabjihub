@@ -12,6 +12,9 @@ import { LocationEmptyState } from '../../components/LocationEmptyState';
 import { AuthContext } from '../../context/AuthContext';
 import styles from './styles';
 import { moderateScale, rf } from '../../utils/responsive';
+import { ChevronRight } from 'lucide-react-native';
+
+
 
 export const CategoriesScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -47,7 +50,7 @@ export const CategoriesScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <LinearGradient 
-        colors={[theme.colors.primary, theme.colors.primary, '#A7F3D0']} 
+        colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} 
         locations={[0, 0.55, 1]} 
         style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
       >
@@ -76,18 +79,26 @@ export const CategoriesScreen = ({ navigation }) => {
             </View>
           )}
 
-          <View style={styles.grid}>
+          <View style={styles.listContainer}>
             {categories.map((cat) => (
               <TouchableOpacity
                 key={cat.id}
-                style={styles.card}
+                style={styles.rowCard}
                 onPress={() => navigation.navigate('CategoryProducts', { categoryId: cat.id })}
                 activeOpacity={0.8}
               >
-                <View style={styles.imageContainer}>
-                  <Image source={{ uri: cat.image }} style={styles.image} resizeMode="cover" />
+                <View style={styles.rowImageContainer}>
+                  <Image source={{ uri: cat.image }} style={styles.rowImage} resizeMode="contain" />
                 </View>
-                <Text style={styles.name} numberOfLines={2}>{cat.name}</Text>
+                <View style={styles.rowTextContainer}>
+                  <Text style={styles.rowName}>{cat.name}</Text>
+                  <Text style={styles.rowSubtitle}>Explore Products</Text>
+                </View>
+                <View style={styles.rowActionContainer}>
+                  <View style={styles.chevronCircle}>
+                    <ChevronRight size={16} color={theme.colors.primary} />
+                  </View>
+                </View>
               </TouchableOpacity>
             ))}
           </View>

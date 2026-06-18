@@ -21,6 +21,8 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(22, 101, 52, 0.2)',
   },
   headerTitle: {
     fontSize: rf(19),
@@ -260,7 +262,7 @@ export default StyleSheet.create({
     borderRadius: moderateScale(48),
     backgroundColor: '#FFFFFF',
     elevation: 6,
-    shadowColor: '#22C55E',
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 12,

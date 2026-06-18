@@ -78,7 +78,7 @@ export const ProductDetailsScreen = ({ route, navigation }) => {
   if (isLoading || isFetching) {
     return (
       <View style={styles.container}>
-        <LinearGradient colors={[theme.colors.primary, theme.colors.primary, '#A7F3D0']} locations={[0, 0.55, 1]} style={styles.header}>
+        <LinearGradient colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} locations={[0, 0.55, 1]} style={styles.header}>
           <View style={styles.headerLeft}>
             <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
               <ArrowLeft size={24} color={theme.colors.white} />
@@ -113,7 +113,7 @@ export const ProductDetailsScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, '#A7F3D0']} locations={[0, 0.55, 1]} style={styles.header}>
+      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} locations={[0, 0.55, 1]} style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <ArrowLeft size={24} color={theme.colors.white} />
@@ -210,7 +210,7 @@ export const ProductDetailsScreen = ({ route, navigation }) => {
           <View style={styles.trustContainer}>
             <View style={styles.trustRow}>
               <View style={styles.iconContainer}>
-                <Truck size={20} color="#16A34A" />
+                <Truck size={20} color={theme.colors.primary} />
               </View>
               <View style={styles.trustTextContainer}>
                 <Text style={styles.trustFeatureTitle}>Superfast Delivery</Text>
@@ -220,7 +220,7 @@ export const ProductDetailsScreen = ({ route, navigation }) => {
 
             <View style={styles.trustRow}>
               <View style={styles.iconContainer}>
-                <Leaf size={20} color="#16A34A" />
+                <Leaf size={20} color={theme.colors.primary} />
               </View>
               <View style={styles.trustTextContainer}>
                 <Text style={styles.trustFeatureTitle}>Freshness Sourced Daily</Text>
@@ -230,7 +230,7 @@ export const ProductDetailsScreen = ({ route, navigation }) => {
 
             <View style={styles.trustRowLast}>
               <View style={styles.iconContainer}>
-                <ShieldCheck size={20} color="#16A34A" />
+                <ShieldCheck size={20} color={theme.colors.primary} />
               </View>
               <View style={styles.trustTextContainer}>
                 <Text style={styles.trustFeatureTitle}>Safe & Sealed Packaging</Text>

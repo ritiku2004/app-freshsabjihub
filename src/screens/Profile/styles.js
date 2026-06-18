@@ -19,6 +19,8 @@ export default StyleSheet.create({
     paddingTop: moderateScale(22),
     paddingBottom: moderateScale(22),
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(22, 101, 52, 0.2)',
   },
   headerTitle: {
     fontSize: rf(19),

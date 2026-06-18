@@ -188,7 +188,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
       <View style={styles.container}>
         {/* Static Header — matches other screens */}
         <LinearGradient
-          colors={[theme.colors.primary, theme.colors.primary, '#A7F3D0']}
+          colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
           style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
         >
@@ -208,7 +208,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
     <View style={styles.container}>
       {/* Static Header — matches other screens */}
       <LinearGradient
-        colors={[theme.colors.primary, theme.colors.primary, '#A7F3D0']}
+        colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
         locations={[0, 0.55, 1]}
         style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
       >

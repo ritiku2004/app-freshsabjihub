@@ -200,35 +200,47 @@ export default StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
   },
   categoryCircleCard: {
-    width: '25%', // 4 columns
-    alignItems: 'center',
+    width: '23%', // 4 columns
+    marginHorizontal: '1%',
+    backgroundColor: theme.colors.primary, // Dark green matching header
+    borderRadius: moderateScale(16), // Extra rounded premium corners
+    overflow: 'hidden',
     marginBottom: theme.spacing.md,
-    paddingHorizontal: moderateScale(4),
+    borderWidth: 3.0, // Twice as thick border
+    borderColor: theme.colors.primary, // Same green color as card background and header
+    // Premium soft shadow
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
   },
   categoryImageContainer: {
-    width: moderateScale(58),
-    height: moderateScale(58),
-    borderRadius: moderateScale(29),
-    backgroundColor: theme.colors.white,
+    width: '100%', // Spans full card width
+    height: moderateScale(68), // Fixed height for image area
+    backgroundColor: '#FFFFFF', // Pure white backing to make category images pop
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    marginBottom: moderateScale(6),
-    overflow: 'hidden',
-    ...theme.shadows.sm,
+    borderTopLeftRadius: moderateScale(15), // Matches parent card's outer roundness
+    borderTopRightRadius: moderateScale(15),
+    borderBottomLeftRadius: moderateScale(6), // Subtle roundness on bottom of image section
+    borderBottomRightRadius: moderateScale(6),
+    overflow: 'hidden', // Clips the image to the white section's rounded corners
   },
   categoryCircleImage: {
     width: '100%',
     height: '100%',
-    borderRadius: moderateScale(29),
   },
   categoryCircleName: {
     fontSize: rf(11),
-    fontWeight: theme.typography.weights.medium,
-    color: theme.colors.textPrimary,
+    fontWeight: '800',
+    color: theme.colors.white,
     textAlign: 'center',
     lineHeight: rf(14),
+    paddingHorizontal: moderateScale(2),
+    paddingTop: moderateScale(8),
+    paddingBottom: moderateScale(8),
+    width: '100%', // Span full width for text container
   },
   // Products Row
   productsHorizontalScroll: {

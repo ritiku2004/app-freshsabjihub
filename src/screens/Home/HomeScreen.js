@@ -31,6 +31,16 @@ import { BannerCarousel } from '../../components/BannerCarousel';
 import styles from './styles';
 import { moderateScale, rf } from '../../utils/responsive';
 
+const formatETA = (mins) => {
+  if (!mins) return '---';
+  if (mins < 60) return `${mins} mins`;
+  const hrs = Math.floor(mins / 60);
+  const remainingMins = mins % 60;
+  if (remainingMins === 0) {
+    return `${hrs} ${hrs > 1 ? 'hrs' : 'hr'}`;
+  }
+  return `${hrs} ${hrs > 1 ? 'hrs' : 'hr'} ${remainingMins} mins`;
+};
 
 export const HomeScreen = ({ navigation }) => {
   const queryClient = useQueryClient();
@@ -138,7 +148,7 @@ export const HomeScreen = ({ navigation }) => {
                   Deliver in
                 </Text>
                 <Text style={{ fontSize: rf(20), fontWeight: '900', color: theme.colors.white, marginTop: moderateScale(1) }}>
-                  {deliveryETA ? `${deliveryETA} mins` : '---'}
+                  {formatETA(deliveryETA)}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: moderateScale(4) }}>
                   <Text style={{ fontSize: rf(13), fontWeight: '700', color: theme.colors.white, maxWidth: 220 }} numberOfLines={1}>
@@ -182,7 +192,7 @@ export const HomeScreen = ({ navigation }) => {
         {/* Index 1: Sticky Search Bar Row */}
         <View style={{ zIndex: 100, elevation: 5 }}>
           <LinearGradient
-            colors={[theme.colors.primary, '#A7F3D0']}
+            colors={[theme.colors.primary, theme.colors.primary]}
             style={{ paddingTop: moderateScale(16), paddingHorizontal: theme.spacing.lg, paddingBottom: moderateScale(16) }}
           >
             <View style={styles.searchContainer}>
@@ -240,7 +250,7 @@ export const HomeScreen = ({ navigation }) => {
                   Deliver in
                 </Text>
                 <Text style={{ fontSize: rf(20), fontWeight: '900', color: theme.colors.white, marginTop: moderateScale(1) }}>
-                  {deliveryETA ? `${deliveryETA} mins` : '---'}
+                  {formatETA(deliveryETA)}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: moderateScale(4) }}>
                   <Text style={{ fontSize: rf(13), fontWeight: '700', color: theme.colors.white, maxWidth: 220 }} numberOfLines={1}>
@@ -284,7 +294,7 @@ export const HomeScreen = ({ navigation }) => {
         {/* Index 1: Sticky Search Bar Row */}
         <View style={{ zIndex: 100, elevation: 5 }}>
           <LinearGradient
-            colors={[theme.colors.primary, '#A7F3D0']}
+            colors={[theme.colors.primary, theme.colors.primary]}
             style={{ paddingTop: moderateScale(16), paddingHorizontal: theme.spacing.lg, paddingBottom: moderateScale(16) }}
           >
             <View style={styles.searchContainer}>
@@ -339,11 +349,6 @@ export const HomeScreen = ({ navigation }) => {
 
         {/* Index 2: Main Body (White Background) */}
         <View style={{ backgroundColor: theme.colors.white, paddingBottom: theme.spacing.xxl, flex: 1 }}>
-            {homeTopBanners.length > 0 && (
-              <View style={[styles.bannersContainer, { marginTop: 0 }]}>
-                <BannerCarousel banners={homeTopBanners} />
-              </View>
-            )}
 
             {/* Main Content Area */}
             {!activeAddress ? (
@@ -377,7 +382,7 @@ export const HomeScreen = ({ navigation }) => {
                 activeOpacity={0.8}
               >
                 <View style={styles.categoryImageContainer}>
-                  <Image source={{ uri: cat.image }} style={styles.categoryCircleImage} resizeMode="contain" />
+                  <Image source={{ uri: cat.image }} style={styles.categoryCircleImage} resizeMode="cover" />
                 </View>
                 <Text style={styles.categoryCircleName} numberOfLines={2}>
                   {cat.name}
@@ -385,6 +390,12 @@ export const HomeScreen = ({ navigation }) => {
               </TouchableOpacity>
             ))}
           </View>
+
+            {homeTopBanners.length > 0 && (
+              <View style={[styles.bannersContainer, { marginTop: theme.spacing.sm }]}>
+                <BannerCarousel banners={homeTopBanners} />
+              </View>
+            )}
 
 
         {categoriesWithProducts.map((cat, index) => (

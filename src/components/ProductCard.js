@@ -34,7 +34,7 @@ export const ProductCard = React.memo(({
           style={styles.image}
           resizeMode="cover"
         />
-        
+
         {/* Out of stock overlay */}
         {isOutOfStock && (
           <View style={styles.outOfStockOverlay}>
@@ -62,7 +62,7 @@ export const ProductCard = React.memo(({
 
       {/* Product Info Section */}
       <View style={styles.infoContainer}>
-        
+
         {/* Unit Tag */}
         <View style={styles.unitTag}>
           <Text style={styles.unitText}>{unit}</Text>
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     borderRadius: moderateScale(12),
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    width: '100%', 
+    width: '100%',
     overflow: 'hidden',
     justifyContent: 'flex-start',
   },

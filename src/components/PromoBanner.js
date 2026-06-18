@@ -51,10 +51,10 @@ export const PromoBanner = ({ title, subtitle, description, imageUri, image, bac
 const styles = StyleSheet.create({
   bannerCard: {
     width: '100%',
-    borderRadius: 0,
-    height: moderateScale(190), // Height 190 keeps original aspect ratio to prevent cropping on the right
+    borderRadius: moderateScale(16), // Rounded card corners
+    height: moderateScale(180), // Adjusted height for clean display
     justifyContent: 'center',
-    overflow: 'hidden',
+    overflow: 'hidden', // Clips background image corners
     borderWidth: 0,
   },
   bannerContent: {
@@ -70,10 +70,10 @@ const styles = StyleSheet.create({
     right: 0,
     width: '100%',
     height: '100%',
-    borderRadius: 0,
+    borderRadius: moderateScale(16), // Rounded corners for image
   },
   bannerLeft: {
-    width: '60%', // Constrain text overlay to the left half, leaving the right side for the couple graphic
+    width: '60%', // Constrain text overlay
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
@@ -104,10 +104,10 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(10),
   },
   shopNowButton: {
-    backgroundColor: '#16A34A', // Solid green CTA button matching mockup
-    paddingHorizontal: moderateScale(12),
-    paddingVertical: moderateScale(6),
-    borderRadius: moderateScale(5),
+    backgroundColor: theme.colors.primary, // Brand dark green CTA
+    paddingHorizontal: moderateScale(14),
+    paddingVertical: moderateScale(7),
+    borderRadius: moderateScale(20), // Pill button style
   },
   shopNowText: {
     color: theme.colors.white,

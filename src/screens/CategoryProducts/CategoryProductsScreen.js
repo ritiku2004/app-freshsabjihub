@@ -127,7 +127,7 @@ export const CategoryProductsScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, '#A7F3D0']} locations={[0, 0.55, 1]} style={styles.header}>
+      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} locations={[0, 0.55, 1]} style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <ArrowLeft size={24} color={theme.colors.white} />

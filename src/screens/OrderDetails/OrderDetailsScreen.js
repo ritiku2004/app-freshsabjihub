@@ -142,7 +142,7 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
         pointerEvents="box-none"
       >
         <LinearGradient
-          colors={[theme.colors.primary, theme.colors.primary, '#A7F3D0']}
+          colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
           style={styles.header}
         >
