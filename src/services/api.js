@@ -111,7 +111,7 @@ export const api = {
         title: b.title,
         subtitle: b.subtitle || '',
         description: b.description || '',
-        image: b.image_url,
+        image: b.image_url ? b.image_url.replace('http://', 'https://') : null,
         backgroundColor: b.background_color,
         textColor: b.text_color,
         location: b.location
@@ -149,7 +149,7 @@ export const api = {
       return (data.data || []).map(c => ({
         ...c,
         id: String(c.id),
-        image: c.image_url
+        image: c.image_url ? c.image_url.replace('http://', 'https://') : null
       }));
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -181,7 +181,8 @@ export const api = {
         id: String(p.product_id || p.id),
         name: p.product_name || p.name,
         categoryId: String(p.category_id),
-        image: p.image_url,
+        categoryIds: p.category_ids ? String(p.category_ids).split(',') : [String(p.category_id)],
+        image: p.image_url ? p.image_url.replace('http://', 'https://') : null,
         price: Number(p.price) || 0,
         discountPrice: p.discount_percentage ? Number(p.price) - (Number(p.price) * (Number(p.discount_percentage) / 100)) : Number(p.price),
         unit: `${p.quantity} ${p.quantity_type}`,
@@ -191,8 +192,7 @@ export const api = {
 
       // Filter by Category
       if (categoryId) {
-        // Backend uses category_id
-        filtered = filtered.filter((p) => String(p.category_id) === String(categoryId));
+        filtered = filtered.filter((p) => p.categoryIds.includes(String(categoryId)));
       }
 
       // Filter by Search Query
@@ -231,7 +231,7 @@ export const api = {
 
       return {
         ...p,
-        image: p.image_url || p.image,
+        image: (p.image_url || p.image) ? (p.image_url || p.image).replace('http://', 'https://') : null,
         price: Number(p.mrp_price) || 0,
         discountPrice: p.discount_percentage ? Number(p.mrp_price) - (Number(p.mrp_price) * (Number(p.discount_percentage) / 100)) : Number(p.mrp_price),
         unit: `${p.quantity} ${p.quantity_type}`,

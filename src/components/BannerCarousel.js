@@ -6,7 +6,7 @@ import { moderateScale } from '../utils/responsive';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-export const BannerCarousel = ({ banners = [], containerStyle = {} }) => {
+export const BannerCarousel = ({ banners = [], containerStyle = {}, navigation }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef(null);
 
@@ -45,7 +45,7 @@ export const BannerCarousel = ({ banners = [], containerStyle = {} }) => {
         }}
         renderItem={({ item }) => (
           <View style={styles.bannerWrapper}>
-            <PromoBanner {...item} />
+            <PromoBanner {...item} navigation={navigation} />
           </View>
         )}
       />

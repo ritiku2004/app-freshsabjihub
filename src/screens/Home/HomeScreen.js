@@ -393,7 +393,7 @@ export const HomeScreen = ({ navigation }) => {
 
             {homeTopBanners.length > 0 && (
               <View style={[styles.bannersContainer, { marginTop: theme.spacing.sm }]}>
-                <BannerCarousel banners={homeTopBanners} />
+                <BannerCarousel banners={homeTopBanners} navigation={navigation} />
               </View>
             )}
 
@@ -428,7 +428,7 @@ export const HomeScreen = ({ navigation }) => {
 
               {index === 1 && homeMiddleBanners.length > 0 && (
                 <View style={{ marginTop: theme.spacing.md, marginBottom: theme.spacing.sm }}>
-                  <BannerCarousel banners={homeMiddleBanners} />
+                  <BannerCarousel banners={homeMiddleBanners} navigation={navigation} />
                 </View>
               )}
             </React.Fragment>

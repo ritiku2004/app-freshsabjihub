@@ -5,7 +5,7 @@ import { moderateScale, rf } from '../utils/responsive';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-export const PromoBanner = ({ title, subtitle, description, imageUri, image, backgroundColor, textColor, buttonText }) => {
+export const PromoBanner = ({ title, subtitle, description, imageUri, image, backgroundColor, textColor, buttonText, navigation }) => {
   const source = typeof image === 'string' ? { uri: image } : (image ? image : { uri: imageUri });
   const isHero = !!(source && source.uri && (source.uri.includes('hero_banner') || source.uri.includes('hero6_banner')));
 
@@ -39,7 +39,15 @@ export const PromoBanner = ({ title, subtitle, description, imageUri, image, bac
             </Text>
           ) : null}
 
-          <TouchableOpacity style={styles.shopNowButton} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.shopNowButton}
+            activeOpacity={0.8}
+            onPress={() => {
+              if (navigation) {
+                navigation.navigate('MainTabs', { screen: 'CategoriesTab' });
+              }
+            }}
+          >
             <Text style={styles.shopNowText}>{buttonText || 'Shop Now'}</Text>
           </TouchableOpacity>
         </View>
