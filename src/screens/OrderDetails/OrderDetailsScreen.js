@@ -19,11 +19,82 @@ import styles from './styles';
 import { moderateScale, rf } from '../../utils/responsive';
 
 export const OrderDetailsScreen = ({ route, navigation }) => {
-  const { order } = route.params;
+  const { order: initialOrder, orderId } = route.params || {};
+  const [order, setOrder] = useState(initialOrder);
+  const [loading, setLoading] = useState(!initialOrder);
   const insets = useSafeAreaInsets();
   const [tick, setTick] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
   const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (order) return;
+
+    const fetchOrder = async () => {
+      try {
+        const backendOrders = await api.getUserOrders();
+        if (backendOrders && Array.isArray(backendOrders)) {
+          const mappedOrders = backendOrders.map(o => {
+            const parts = (o.address_line1 || '').split('||');
+            const flatNo = parts[0] || '';
+            const addressLine = parts[1] || '';
+
+            return {
+              id: o.order_number,
+              dbId: o.id,
+              createdAt: o.created_at,
+              totalAmount: Number(o.total_amount),
+              status: o.status,
+              deliveryFee: Number(o.delivery_fee),
+              handlingFee: Number(o.handling_fee),
+              tipAmount: Number(o.tip_amount),
+              discountAmount: Number(o.discount_amount),
+              address: o.address_line1 ? {
+                flatNo,
+                addressLine,
+                receiverName: o.receiver_name,
+                receiverMobile: o.receiver_mobile,
+                city: o.city,
+                state: o.state,
+                zipcode: o.zipcode,
+              } : null,
+              items: (o.items || []).map(item => ({
+                id: item.id,
+                productId: item.product_id,
+                name: item.product_name,
+                quantity: item.quantity,
+                price: Number(item.price),
+                image: item.image_url
+              }))
+            };
+          });
+
+          const found = mappedOrders.find(o => 
+            String(o.dbId) === String(orderId) || 
+            String(o.id) === String(orderId)
+          );
+
+          if (found) {
+            setOrder(found);
+          } else {
+            Alert.alert('Error', 'Order details not found.');
+            navigation.goBack();
+          }
+        } else {
+          Alert.alert('Error', 'Failed to fetch order details.');
+          navigation.goBack();
+        }
+      } catch (err) {
+        console.error('Error fetching order details:', err);
+        Alert.alert('Error', 'Failed to load order details.');
+        navigation.goBack();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [orderId]);
 
   // Animated scroll value for header fade/slide
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -112,6 +183,14 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
       };
     }
   };
+
+  if (loading || !order) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8FAFC' }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
 
   const statusInfo = getOrderStatus(order);
   const orderCreatedAt = order.created_at || order.createdAt;
