@@ -6,48 +6,11 @@ import { ArrowLeft, Bell, Package, Tag, Info } from 'lucide-react-native';
 import { theme } from '../../theme';
 import { moderateScale, rf } from '../../utils/responsive';
 
-// Mock Notification Data
-const NOTIFICATIONS = [
-  {
-    id: '1',
-    type: 'order',
-    title: 'Order Delivered Successfully!',
-    message: 'Your order #ORD-8492 has been delivered to your address. Enjoy your groceries!',
-    time: '10 mins ago',
-    isRead: false,
-    clickable: true,
-  },
-  {
-    id: '2',
-    type: 'promo',
-    title: '50% OFF on Fresh Fruits 🍎',
-    message: 'Grab fresh farm apples and oranges at half price today. Limited stock available!',
-    time: '2 hours ago',
-    isRead: false,
-    clickable: true,
-  },
-  {
-    id: '3',
-    type: 'system',
-    title: 'Welcome to Grocery App!',
-    message: 'Thank you for joining us. We guarantee 10-minute delivery for all your needs.',
-    time: '1 day ago',
-    isRead: true,
-    clickable: false,
-  },
-  {
-    id: '4',
-    type: 'order',
-    title: 'Order Out for Delivery',
-    message: 'Ritik is on the way with your order #ORD-8491. Please keep your phone reachable.',
-    time: '2 days ago',
-    isRead: true,
-    clickable: true,
-  }
-];
+import { useNotifications } from '../../context/NotificationContext';
 
 export const NotificationsScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
+  const { notifications, markAsRead, markAllAsRead, clearAll } = useNotifications();
 
   const renderIcon = (type) => {
     switch(type) {
@@ -69,9 +32,17 @@ export const NotificationsScreen = ({ navigation }) => {
     <TouchableOpacity 
       style={[styles.notificationCard, !item.isRead && styles.unreadCard]}
       activeOpacity={item.clickable ? 0.7 : 1}
-      onPress={() => {
+      onPress={async () => {
+        await markAsRead(item.id);
         if(item.clickable) {
-          if (item.type === 'order') navigation.navigate('OrdersTab');
+          if (item.type === 'order' || item.type === 'order_status') {
+            // Navigate to order details or tab
+            if (item.data?.orderId) {
+              navigation.navigate('OrderDetails', { orderId: item.data.orderId });
+            } else {
+              navigation.navigate('OrdersTab');
+            }
+          }
           else if (item.type === 'promo') navigation.navigate('CategoriesTab');
         }
       }}
@@ -100,17 +71,29 @@ export const NotificationsScreen = ({ navigation }) => {
         colors={[theme.colors.primary, theme.colors.primary]}
         style={[styles.header, { paddingTop: Math.max(insets.top, 20) }]}
       >
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7} style={styles.backButton}>
-            <ArrowLeft size={24} color={theme.colors.white} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Notifications</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7} style={styles.backButton}>
+              <ArrowLeft size={24} color={theme.colors.white} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Notifications</Text>
+          </View>
+          {notifications.length > 0 && (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={markAllAsRead} style={styles.headerActionBtn}>
+                <Text style={styles.actionText}>Read All</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={clearAll} style={styles.headerActionBtn}>
+                <Text style={styles.actionText}>Clear</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </LinearGradient>
 
-      {NOTIFICATIONS.length > 0 ? (
+      {notifications.length > 0 ? (
         <FlatList
-          data={NOTIFICATIONS}
+          data={notifications}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}
@@ -140,10 +123,31 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: moderateScale(24),
     borderBottomRightRadius: moderateScale(24),
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: moderateScale(10),
+  },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: moderateScale(10),
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerActionBtn: {
+    marginLeft: moderateScale(12),
+    paddingVertical: moderateScale(4),
+    paddingHorizontal: moderateScale(8),
+    borderRadius: moderateScale(8),
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  actionText: {
+    color: theme.colors.white,
+    fontSize: rf(12),
+    fontWeight: '600',
   },
   backButton: {
     padding: moderateScale(4),

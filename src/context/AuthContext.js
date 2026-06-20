@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api, setApiAuthToken } from '../services/api';
 import { calculateDeliveryETA } from '../services/distanceService';
+import { registerForPushNotificationsAsync } from '../services/notificationHelper';
 
 const ONBOARDING_KEY = '@grocery_onboarding';
 const USER_KEY = '@grocery_user';
@@ -96,6 +97,8 @@ export const AuthProvider = ({ children }) => {
           setApiAuthToken(tokenValue);
           setIsAuthenticated(true);
           isAuthed = true;
+          // Register push notifications device token on startup
+          registerForPushNotificationsAsync().catch(err => console.log('Failed to register device token on startup:', err));
         }
 
         let loadedAddresses = DEFAULT_ADDRESSES;
@@ -243,6 +246,9 @@ export const AuthProvider = ({ children }) => {
       setGuestId(null);
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
       await AsyncStorage.setItem(TOKEN_KEY, jwtToken);
+
+      // Register push notifications device token after authentication
+      registerForPushNotificationsAsync().catch(err => console.log('Failed to register device token on login:', err));
 
       // Merge temporary guest addresses to the backend database
       const guestAddresses = addresses.filter(addr => 

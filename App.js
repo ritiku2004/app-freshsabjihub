@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import { theme } from './src/theme';
 import { AuthProvider } from './src/context/AuthContext';
+import { NotificationProvider } from './src/context/NotificationContext';
 import { CartProvider } from './src/context/CartContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { registerForPushNotificationsAsync } from './src/services/notificationHelper';
@@ -25,7 +26,7 @@ const queryClient = new QueryClient({
 
 export default function App() {
   useEffect(() => {
-    // Request permission and register device push tokens
+    // Request permission and register device push tokens on mount
     registerForPushNotificationsAsync();
   }, []);
 
@@ -36,12 +37,14 @@ export default function App() {
         <View style={{ flex: 1, backgroundColor: theme.colors.white }}>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
-              <CartProvider>
-                <NavigationContainer>
-                  <StatusBar style="light" backgroundColor="transparent" translucent={true} />
-                  <AppNavigator />
-                </NavigationContainer>
-              </CartProvider>
+              <NotificationProvider>
+                <CartProvider>
+                  <NavigationContainer>
+                    <StatusBar style="light" backgroundColor="transparent" translucent={true} />
+                    <AppNavigator />
+                  </NavigationContainer>
+                </CartProvider>
+              </NotificationProvider>
             </AuthProvider>
           </QueryClientProvider>
         </View>

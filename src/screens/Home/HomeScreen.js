@@ -20,6 +20,7 @@ import { ChevronDown, User, Search, Mic, Bell } from 'lucide-react-native';
 import { theme } from '../../theme';
 import { AuthContext } from '../../context/AuthContext';
 import { CartContext } from '../../context/CartContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { api } from '../../services/api';
 import { useDebounce } from '../../hooks/useDebounce';
 import { AppInput } from '../../components/AppInput';
@@ -47,6 +48,7 @@ export const HomeScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { activeAddress, activeShop, serviceAvailable, isFetchingShop, deliveryETA, isAuthenticated } = useContext(AuthContext);
   const { cartItems, addToCart, updateQuantity } = useContext(CartContext);
+  const { unreadCount } = useNotifications();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -168,9 +170,11 @@ export const HomeScreen = ({ navigation }) => {
                 activeOpacity={0.8}
               >
                 <Bell size={18} color={theme.colors.white} />
-                <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: theme.colors.error, borderRadius: 10, minWidth: 16, height: 16, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 }}>
-                  <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>2</Text>
-                </View>
+                {unreadCount > 0 && (
+                  <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: theme.colors.error, borderRadius: 10, minWidth: 16, height: 16, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 }}>
+                    <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>{unreadCount}</Text>
+                  </View>
+                )}
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -270,9 +274,11 @@ export const HomeScreen = ({ navigation }) => {
                 activeOpacity={0.8}
               >
                 <Bell size={18} color={theme.colors.white} />
-                <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: theme.colors.error, borderRadius: 10, minWidth: 16, height: 16, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 }}>
-                  <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>2</Text>
-                </View>
+                {unreadCount > 0 && (
+                  <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: theme.colors.error, borderRadius: 10, minWidth: 16, height: 16, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 }}>
+                    <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>{unreadCount}</Text>
+                  </View>
+                )}
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
