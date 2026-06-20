@@ -1,6 +1,6 @@
 import React, { useState, useContext, useRef, useCallback, useEffect } from 'react';
 import { View, Text, Animated, TouchableOpacity, Image, Alert, ScrollView, Linking, ActivityIndicator } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -58,42 +58,11 @@ export const CheckoutScreen = ({ route, navigation }) => {
   );
 
   // States
-  const [selectedMethod, setSelectedMethod] = useState('cod');
-  const [availableUpiApps, setAvailableUpiApps] = useState([]);
+  const [selectedMethod] = useState('upi');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatusText, setPaymentStatusText] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [paymentParams, setPaymentParams] = useState(null);
-
-  const UPI_APPS = [
-    { id: 'gpay', name: 'Google Pay UPI', scheme: 'tez://upi', iconColor: '#1A73E8', bg: '#E8F0FE', char: 'G' },
-    { id: 'phonepe', name: 'PhonePe UPI', scheme: 'phonepe://', iconColor: '#5F259F', bg: '#F3E8FF', char: 'Pe' },
-    { id: 'paytm', name: 'Paytm UPI', scheme: 'paytmmp://', iconColor: '#00B9F1', bg: '#E0F7FA', char: 'Py' },
-    { id: 'bhim', name: 'BHIM UPI', scheme: 'bhim://', iconColor: '#E66928', bg: '#FFF3E0', char: 'Bh' }
-  ];
-
-  useEffect(() => {
-    const checkInstalledApps = async () => {
-      const detected = [];
-      for (const app of UPI_APPS) {
-        try {
-          const supported = await Linking.canOpenURL(app.scheme);
-          if (supported) {
-            detected.push(app);
-          }
-        } catch (e) {
-          // Ignore
-        }
-      }
-      setAvailableUpiApps(detected);
-      if (detected.length > 0) {
-        setSelectedMethod(detected[0].id);
-      } else {
-        setSelectedMethod('cod');
-      }
-    };
-    checkInstalledApps();
-  }, []);
 
   // Animated scroll value for header hide/show
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -463,7 +432,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
         {/* Static Header — matches other screens */}
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
@@ -478,12 +447,12 @@ export const CheckoutScreen = ({ route, navigation }) => {
           </View>
         </LinearGradient>
         <Loader />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Static Header — matches other screens */}
       <LinearGradient
         colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
@@ -539,48 +508,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
               </View>
             </View>
           ))}
-        </View>
-
-        {/* Payment Method Selection Card */}
-        <View style={styles.paymentMethodCard}>
-          <Text style={styles.sectionTitle}>Select Payment Option</Text>
-          
-          {availableUpiApps.map((app) => (
-            <TouchableOpacity
-              key={app.id}
-              style={[styles.paymentOptionRow, selectedMethod === app.id && styles.paymentOptionRowActive]}
-              onPress={() => setSelectedMethod(app.id)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.optionLeft}>
-                <View style={[styles.optionIconContainer, { backgroundColor: app.bg }]}>
-                  <Text style={{ fontSize: rf(14), fontWeight: 'bold', color: app.iconColor }}>{app.char}</Text>
-                </View>
-                <Text style={styles.optionLabel}>{app.name}</Text>
-              </View>
-              <View style={[styles.radioCircle, selectedMethod === app.id && styles.radioCircleActive]}>
-                {selectedMethod === app.id && <View style={styles.radioInner} />}
-              </View>
-            </TouchableOpacity>
-          ))}
-
-
-
-          <TouchableOpacity
-            style={[styles.paymentOptionRow, selectedMethod === 'cod' && styles.paymentOptionRowActive]}
-            onPress={() => setSelectedMethod('cod')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionLeft}>
-              <View style={[styles.optionIconContainer, { backgroundColor: '#FFF3E0' }]}>
-                <Text style={{ fontSize: rf(14) }}>💵</Text>
-              </View>
-              <Text style={styles.optionLabel}>Cash on Delivery (COD)</Text>
-            </View>
-            <View style={[styles.radioCircle, selectedMethod === 'cod' && styles.radioCircleActive]}>
-              {selectedMethod === 'cod' && <View style={styles.radioInner} />}
-            </View>
-          </TouchableOpacity>
+          {/* Payment options removed for direct Razorpay checkout */}
         </View>
 
         {/* Bill Details Summary Card */}
@@ -636,34 +564,8 @@ export const CheckoutScreen = ({ route, navigation }) => {
 
         {/* Bottom deck actions: Selected Method + Green Place Order Button */}
         <View style={styles.checkoutActionRow}>
-          <View style={styles.payMethodContainer}>
-            <View style={{ width: moderateScale(32), height: moderateScale(32), borderRadius: moderateScale(6), borderWidth: 1, borderColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9FAFB', marginRight: theme.spacing.sm }}>
-              {selectedMethod === 'gpay' ? (
-                <Text style={{ fontSize: rf(16), fontWeight: 'bold', color: '#1A73E8' }}>G</Text>
-              ) : selectedMethod === 'phonepe' ? (
-                <Text style={{ fontSize: rf(16), fontWeight: 'bold', color: '#5F259F' }}>Pe</Text>
-              ) : selectedMethod === 'paytm' ? (
-                <Text style={{ fontSize: rf(16), fontWeight: 'bold', color: '#00B9F1' }}>Py</Text>
-              ) : selectedMethod === 'upi' ? (
-                <Text style={{ fontSize: rf(16), fontWeight: 'bold', color: '#10B981' }}>UPI</Text>
-              ) : (
-                <Text style={{ fontSize: rf(16) }}>💵</Text>
-              )}
-            </View>
-            <View>
-              <Text style={styles.payMethodLabel}>PAYING WITH</Text>
-              <Text style={styles.payMethodValue}>
-                {selectedMethod === 'gpay' ? 'Google Pay' :
-                 selectedMethod === 'phonepe' ? 'PhonePe' :
-                 selectedMethod === 'paytm' ? 'Paytm' :
-                 selectedMethod === 'upi' ? 'UPI App' :
-                 'Cash on Delivery'}
-              </Text>
-            </View>
-          </View>
-          
           <TouchableOpacity
-            style={styles.greenPlaceOrderBtn}
+            style={[styles.greenPlaceOrderBtn, { flex: 1, marginLeft: 0 }]}
             onPress={handlePlaceOrder}
             activeOpacity={0.9}
           >
@@ -672,7 +574,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
               <Text style={styles.btnPriceLabel}>TOTAL</Text>
             </View>
             <View style={styles.btnDivider} />
-            <Text style={styles.btnRightText}>Place Order ‣</Text>
+            <Text style={styles.btnRightText}>Pay & Place Order ‣</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -708,6 +610,6 @@ export const CheckoutScreen = ({ route, navigation }) => {
           )}
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
