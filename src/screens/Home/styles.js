@@ -74,6 +74,16 @@ export default StyleSheet.create({
     paddingHorizontal: theme.spacing.md + 4,
     ...theme.shadows.md,
   },
+  searchBarCurvyButton: {
+    borderRadius: moderateScale(8),
+    height: moderateScale(46),
+    backgroundColor: theme.colors.white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.md + 4,
+    position: 'relative',
+    ...theme.shadows.md,
+  },
   searchResultsList: {
     position: 'absolute',
     top: moderateScale(60),

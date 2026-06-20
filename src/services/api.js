@@ -138,6 +138,22 @@ export const api = {
     }
   },
 
+  // Fetch nearest shop by latitude and longitude (20km radius check handled by backend)
+  getNearestShop: async (latitude, longitude) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/catalog/nearest-shop?latitude=${latitude}&longitude=${longitude}`);
+      if (!response.ok) {
+        if (response.status === 404) return null; // No shop found
+        throw new Error('Failed to fetch nearest shop');
+      }
+      const data = await response.json();
+      return data.data;
+    } catch (error) {
+      console.error('Error fetching nearest shop:', error);
+      return null;
+    }
+  },
+
   // Fetch all categories from Backend
   getCategories: async ({ queryKey }) => {
     try {
@@ -440,6 +456,25 @@ export const api = {
       return await response.json();
     } catch (error) {
       console.error('Error in submitSupportQuery API:', error);
+      throw error;
+    }
+  },
+
+  retryPayment: async (orderId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/orders/${orderId}/retry`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({}),
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || 'Failed to initiate retry order');
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error in retryPayment API:', error);
       throw error;
     }
   },

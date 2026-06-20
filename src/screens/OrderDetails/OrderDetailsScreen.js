@@ -23,78 +23,77 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
   const [order, setOrder] = useState(initialOrder);
   const [loading, setLoading] = useState(!initialOrder);
   const insets = useSafeAreaInsets();
-  const [tick, setTick] = useState(0);
-  const [isRetrying, setIsRetrying] = useState(false);
   const { user } = useContext(AuthContext);
 
-  useEffect(() => {
-    if (order) return;
+  const fetchOrder = async (showLoading = false) => {
+    if (showLoading) setLoading(true);
+    try {
+      const backendOrders = await api.getUserOrders();
+      if (backendOrders && Array.isArray(backendOrders)) {
+        const mappedOrders = backendOrders.map(o => {
+          const parts = (o.address_line1 || '').split('||');
+          const flatNo = parts[0] || '';
+          const addressLine = parts[1] || '';
 
-    const fetchOrder = async () => {
-      try {
-        const backendOrders = await api.getUserOrders();
-        if (backendOrders && Array.isArray(backendOrders)) {
-          const mappedOrders = backendOrders.map(o => {
-            const parts = (o.address_line1 || '').split('||');
-            const flatNo = parts[0] || '';
-            const addressLine = parts[1] || '';
+          return {
+            id: o.order_number,
+            dbId: o.id,
+            createdAt: o.created_at,
+            totalAmount: Number(o.total_amount),
+            status: o.status,
+            deliveryFee: Number(o.delivery_fee),
+            handlingFee: Number(o.handling_fee),
+            tipAmount: Number(o.tip_amount),
+            discountAmount: Number(o.discount_amount),
+            address: o.address_line1 ? {
+              flatNo,
+              addressLine,
+              receiverName: o.receiver_name,
+              receiverMobile: o.receiver_mobile,
+              city: o.city,
+              state: o.state,
+              zipcode: o.zipcode,
+            } : null,
+            items: (o.items || []).map(item => ({
+              id: item.id,
+              productId: item.product_id,
+              name: item.product_name,
+              quantity: item.quantity,
+              price: Number(item.price),
+              image: item.image_url
+            }))
+          };
+        });
 
-            return {
-              id: o.order_number,
-              dbId: o.id,
-              createdAt: o.created_at,
-              totalAmount: Number(o.total_amount),
-              status: o.status,
-              deliveryFee: Number(o.delivery_fee),
-              handlingFee: Number(o.handling_fee),
-              tipAmount: Number(o.tip_amount),
-              discountAmount: Number(o.discount_amount),
-              address: o.address_line1 ? {
-                flatNo,
-                addressLine,
-                receiverName: o.receiver_name,
-                receiverMobile: o.receiver_mobile,
-                city: o.city,
-                state: o.state,
-                zipcode: o.zipcode,
-              } : null,
-              items: (o.items || []).map(item => ({
-                id: item.id,
-                productId: item.product_id,
-                name: item.product_name,
-                quantity: item.quantity,
-                price: Number(item.price),
-                image: item.image_url
-              }))
-            };
-          });
+        const targetId = orderId || order?.dbId || order?.id;
+        const found = mappedOrders.find(o => 
+          String(o.dbId) === String(targetId) || 
+          String(o.id) === String(targetId)
+        );
 
-          const found = mappedOrders.find(o => 
-            String(o.dbId) === String(orderId) || 
-            String(o.id) === String(orderId)
-          );
-
-          if (found) {
-            setOrder(found);
-          } else {
-            Alert.alert('Error', 'Order details not found.');
-            navigation.goBack();
-          }
-        } else {
-          Alert.alert('Error', 'Failed to fetch order details.');
-          navigation.goBack();
+        if (found) {
+          setOrder(found);
         }
-      } catch (err) {
-        console.error('Error fetching order details:', err);
-        Alert.alert('Error', 'Failed to load order details.');
-        navigation.goBack();
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      console.error('Error fetching order details:', err);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
 
-    fetchOrder();
+  useEffect(() => {
+    if (!order) {
+      fetchOrder(true);
+    }
   }, [orderId]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      fetchOrder(false);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [orderId, order?.dbId, order?.id]);
 
   // Animated scroll value for header fade/slide
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -109,79 +108,28 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
     extrapolate: 'clamp',
   });
 
-  // Re-run status check every 5 seconds to show progress updates
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTick((t) => t + 1);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleRetryPayment = async () => {
-    setIsRetrying(true);
-    const orderDbId = order.dbId || order.id;
-    try {
-      const response = await fetch(`${API_BASE_URL}/user/orders/${orderDbId}/retry`, {
-        method: 'POST',
-        headers: {
-          ...api.getHeaders?.()
-        }
-      });
-
-      const resData = await response.json();
-      setIsRetrying(false);
-
-      if (response.ok && resData.success) {
-        navigation.navigate('PaymentWebView', {
-          orderId: orderDbId,
-          orderNumber: order.order_number || order.orderNumber,
-          razorpayOrderId: resData.data.razorpayOrderId,
-          amount: resData.data.amount,
-          amountPaise: resData.data.amountPaise,
-          razorpayKeyId: resData.data.razorpayKeyId,
-          userName: `${order.address?.receiverName || ''}`.trim(),
-          userEmail: '',
-          userPhone: user?.phone_number || order.address?.receiverMobile || '',
-          items: order.items || [],
-          address: order.address,
-          paymentMethod: 'upi' // Set general UPI app selection as fallback/default on retry
-        });
-      } else {
-        throw new Error(resData.message || 'Failed to initiate retry order');
-      }
-    } catch (err) {
-      console.error('Retry Payment Request Failed:', err);
-      setIsRetrying(false);
-      Alert.alert('Retry Failed', err.message || 'We could not initiate the payment retry. Please check your network and try again.');
-    }
+  const handleRetryPayment = () => {
+    navigation.navigate('Checkout', { retryOrder: order });
   };
 
   const getOrderStatus = (orderObj) => {
-    if (orderObj.status === 'Pending Payment') {
-      return { step: 0, text: 'Pending Payment' };
+    const status = orderObj.status;
+    if (status === 'Pending Payment' || status === 'Placed') {
+      return { step: 0, text: 'Waiting for Confirmation' };
     }
-    if (orderObj.status === 'Cancelled') {
+    if (status === 'Cancelled') {
       return { step: -1, text: 'Cancelled' };
     }
-
-    const orderTime = orderObj.created_at || orderObj.createdAt;
-    const elapsedMs = new Date().getTime() - new Date(orderTime).getTime();
-    if (elapsedMs < 15000) {
-      return {
-        step: 1, // Processing
-        text: 'Processing',
-      };
-    } else if (elapsedMs < 35000) {
-      return {
-        step: 2, // Out for Delivery
-        text: 'Out for Delivery',
-      };
-    } else {
-      return {
-        step: 3, // Delivered
-        text: 'Delivered',
-      };
+    if (status === 'Processing') {
+      return { step: 1, text: 'Order Confirmed' };
     }
+    if (status === 'Shipped') {
+      return { step: 2, text: 'On the Way' };
+    }
+    if (status === 'Delivered') {
+      return { step: 3, text: 'Delivered' };
+    }
+    return { step: 0, text: status || 'Waiting for Confirmation' };
   };
 
   if (loading || !order) {
@@ -260,7 +208,19 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
           
           <View style={styles.timeline}>
             
-            {/* Step 1: Order Placed */}
+            {/* Step 0: Waiting for Confirmation */}
+            <View style={styles.timelineStep}>
+              <View style={styles.timelineLeft}>
+                <View style={[styles.timelineDot, statusInfo.step >= 0 && styles.timelineDotActive]} />
+                <View style={[styles.timelineLine, statusInfo.step >= 1 && styles.timelineLineActive]} />
+              </View>
+              <View style={styles.timelineRight}>
+                <Text style={[styles.stepTitle, statusInfo.step >= 0 && styles.stepTitleActive]}>Waiting for Confirmation</Text>
+                <Text style={styles.stepSubtitle}>Awaiting verification or payment confirmation</Text>
+              </View>
+            </View>
+
+            {/* Step 1: Order Confirmed */}
             <View style={styles.timelineStep}>
               <View style={styles.timelineLeft}>
                 <View style={[styles.timelineDot, statusInfo.step >= 1 && styles.timelineDotActive]} />
@@ -268,18 +228,18 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
               </View>
               <View style={styles.timelineRight}>
                 <Text style={[styles.stepTitle, statusInfo.step >= 1 && styles.stepTitleActive]}>Order Confirmed</Text>
-                <Text style={styles.stepSubtitle}>We have received and approved your order</Text>
+                <Text style={styles.stepSubtitle}>Your order has been accepted and is preparing</Text>
               </View>
             </View>
 
-            {/* Step 2: Out for Delivery */}
+            {/* Step 2: On the Way */}
             <View style={styles.timelineStep}>
               <View style={styles.timelineLeft}>
                 <View style={[styles.timelineDot, statusInfo.step >= 2 && styles.timelineDotActive]} />
                 <View style={[styles.timelineLine, statusInfo.step >= 3 && styles.timelineLineActive]} />
               </View>
               <View style={styles.timelineRight}>
-                <Text style={[styles.stepTitle, statusInfo.step >= 2 && styles.stepTitleActive]}>Out for Delivery</Text>
+                <Text style={[styles.stepTitle, statusInfo.step >= 2 && styles.stepTitleActive]}>On the Way</Text>
                 <Text style={styles.stepSubtitle}>Our delivery partner is bringing your package</Text>
               </View>
             </View>
@@ -289,7 +249,7 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
               <View style={styles.timelineLeft}>
                 <View style={[styles.timelineDot, statusInfo.step >= 3 && styles.timelineDotActive]} />
               </View>
-              <View style={[styles.timelineRight, { paddingBottom: moderateScale(0) }]}>
+              <View style={[styles.timelineRight, { paddingBottom: 0 }]}>
                 <Text style={[styles.stepTitle, statusInfo.step >= 3 && styles.stepTitleActive]}>Delivered</Text>
                 <Text style={styles.stepSubtitle}>Arrived safe & sound at your location</Text>
               </View>
@@ -398,13 +358,8 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
             style={styles.retryButton} 
             onPress={handleRetryPayment}
             activeOpacity={0.8}
-            disabled={isRetrying}
           >
-            {isRetrying ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <Text style={styles.retryButtonText}>Retry Payment (₹{parseFloat(order.totalAmount).toFixed(2)})</Text>
-            )}
+            <Text style={styles.retryButtonText}>Retry Payment (₹{parseFloat(order.totalAmount).toFixed(2)})</Text>
           </TouchableOpacity>
         </View>
       )}

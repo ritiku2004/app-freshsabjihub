@@ -20,6 +20,8 @@ const DEFAULT_ADDRESSES = [
     receiverName: 'John Doe',
     receiverMobile: '9876543210',
     zipcode: '10001', // Added default zipcode for Shop 1
+    latitude: 28.6289,
+    longitude: 77.3790,
   },
   {
     id: 'addr2',
@@ -30,6 +32,8 @@ const DEFAULT_ADDRESSES = [
     receiverName: 'Jane Smith',
     receiverMobile: '8765432109',
     zipcode: '99999', // Added default zipcode that fails
+    latitude: 28.5298,
+    longitude: 77.1511,
   },
 ];
 
@@ -139,7 +143,11 @@ export const AuthProvider = ({ children }) => {
         setAddresses(loadedAddresses);
 
         if (activeAddrValue) {
-          setActiveAddress(JSON.parse(activeAddrValue));
+          const savedActive = JSON.parse(activeAddrValue);
+          const freshActive = loadedAddresses.find(a => String(a.id) === String(savedActive.id) || (a.type === savedActive.type && a.addressLine === savedActive.addressLine));
+          const finalActive = freshActive || savedActive;
+          setActiveAddress(finalActive);
+          await AsyncStorage.setItem(ACTIVE_ADDRESS_KEY, JSON.stringify(finalActive));
         } else if (loadedAddresses.length > 0) {
           setActiveAddress(loadedAddresses[0]);
           await AsyncStorage.setItem(ACTIVE_ADDRESS_KEY, JSON.stringify(loadedAddresses[0]));
@@ -158,7 +166,7 @@ export const AuthProvider = ({ children }) => {
 
   // Expose an explicit, awaitable function to update location and fetch the shop immediately
   const updateLocationAndShop = async (address) => {
-    if (!address || !address.zipcode) {
+    if (!address || !address.latitude || !address.longitude) {
       setActiveAddress(address);
       setActiveShop(null);
       setServiceAvailable(false);
@@ -177,7 +185,8 @@ export const AuthProvider = ({ children }) => {
     await AsyncStorage.setItem(ACTIVE_ADDRESS_KEY, JSON.stringify(address));
 
     try {
-      const shop = await api.getShopByZipcode(address.zipcode);
+      const shop = await api.getNearestShop(address.latitude, address.longitude);
+
       if (shop) {
         setActiveShop(shop);
         setServiceAvailable(true);
@@ -247,7 +256,16 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
       await AsyncStorage.setItem(TOKEN_KEY, jwtToken);
 
-      // Register push notifications device token after authentication
+      // Request location permission on login
+      try {
+        const Location = require('expo-location');
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        console.log('[AuthContext] Location permission requested on login. Status:', status);
+      } catch (locErr) {
+        console.warn('[AuthContext] Failed to request location permission on login:', locErr);
+      }
+
+      // Register push notifications device token after authentication (also triggers notification permission prompt)
       registerForPushNotificationsAsync().catch(err => console.log('Failed to register device token on login:', err));
 
       // Merge temporary guest addresses to the backend database

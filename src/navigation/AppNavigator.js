@@ -15,6 +15,7 @@ import { OnboardingScreen } from '../screens/Onboarding/OnboardingScreen';
 import { LoginScreen } from '../screens/Login/LoginScreen';
 import { OTPScreen } from '../screens/OTP/OTPScreen';
 import { HomeScreen } from '../screens/Home/HomeScreen';
+import { SearchScreen } from '../screens/Search/SearchScreen';
 import { CategoriesScreen } from '../screens/Categories/CategoriesScreen';
 import { CategoryProductsScreen } from '../screens/CategoryProducts/CategoryProductsScreen';
 import { ProductDetailsScreen } from '../screens/ProductDetails/ProductDetailsScreen';
@@ -263,6 +264,7 @@ export const AppNavigator = () => {
       <Stack.Screen name="Cart" component={CartScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="OTP" component={OTPScreen} />
+      <Stack.Screen name="Search" component={SearchScreen} />
       
       {/* Protected/other screens */}
       <Stack.Screen name="Profile" component={ProfileScreen} />

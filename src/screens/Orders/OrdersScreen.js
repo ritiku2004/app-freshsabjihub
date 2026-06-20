@@ -120,17 +120,23 @@ export const OrdersScreen = ({ navigation }) => {
 
   // Get delivery status based on order status or simulated time elapsed
   const getOrderStatus = (item) => {
-    if (item.status === 'Pending Payment') {
-      return { text: 'Payment Pending', color: '#D97706', bg: '#FEF3C7' };
+    const status = item.status;
+    if (status === 'Pending Payment' || status === 'Placed') {
+      return { text: 'Waiting for Confirmation', color: '#D97706', bg: '#FEF3C7' };
     }
-    if (item.status === 'Cancelled') {
+    if (status === 'Cancelled') {
       return { text: 'Cancelled', color: '#EF4444', bg: '#FEE2E2' };
     }
-    
-    const elapsedMs = new Date().getTime() - new Date(item.createdAt).getTime();
-    if (elapsedMs < 15000) return { text: 'Processing', color: theme.colors.accent, bg: theme.colors.accentLight };
-    if (elapsedMs < 35000) return { text: 'Out for Delivery', color: theme.colors.primary, bg: theme.colors.primaryLight };
-    return { text: 'Delivered', color: theme.colors.textSecondary, bg: theme.colors.lightGray };
+    if (status === 'Processing') {
+      return { text: 'Order Confirmed', color: '#10B981', bg: '#DCFCE7' };
+    }
+    if (status === 'Shipped') {
+      return { text: 'On the Way', color: theme.colors.primary, bg: theme.colors.primaryLight };
+    }
+    if (status === 'Delivered') {
+      return { text: 'Delivered', color: theme.colors.textSecondary, bg: theme.colors.lightGray };
+    }
+    return { text: status || 'Waiting for Confirmation', color: theme.colors.accent, bg: theme.colors.accentLight };
   };
 
   const handleOrderAgain = async (item) => {
@@ -144,12 +150,12 @@ export const OrdersScreen = ({ navigation }) => {
             [
               {
                 text: 'OK',
-                onPress: () => navigation.navigate('MainTabs', { screen: 'CartTab' })
+                onPress: () => navigation.navigate('Checkout')
               }
             ]
           );
         } else {
-          navigation.navigate('MainTabs', { screen: 'CartTab' });
+          navigation.navigate('Checkout');
         }
       } else {
         Alert.alert('Unavailable', res.message || 'All items in this order are currently out of stock.');

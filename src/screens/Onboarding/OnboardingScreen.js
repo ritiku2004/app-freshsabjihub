@@ -1,5 +1,6 @@
 import React, { useState, useRef, useContext, useEffect } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, useWindowDimensions, Animated, Easing, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { AppButton } from '../../components/AppButton';
 import styles from './styles';
@@ -33,6 +34,7 @@ export const OnboardingScreen = ({ navigation }) => {
   const { completeOnboarding } = useContext(AuthContext);
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef(null);
+  const insets = useSafeAreaInsets();
 
   // Animated values
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -231,7 +233,14 @@ export const OnboardingScreen = ({ navigation }) => {
         style={styles.slideList}
       />
 
-      <Animated.View style={[styles.footer, { transform: [{ translateY: footerSlideAnim }] }]}>
+      <Animated.View style={[
+        styles.footer, 
+        { 
+          paddingBottom: insets.bottom > 0 ? theme.spacing.md : theme.spacing.xxl + 10,
+          marginBottom: insets.bottom > 0 ? insets.bottom : 0,
+          transform: [{ translateY: footerSlideAnim }] 
+        }
+      ]}>
         <TouchableOpacity onPress={handleFinish} activeOpacity={0.7}>
           <Text style={styles.actionText}>Skip</Text>
         </TouchableOpacity>
@@ -278,6 +287,18 @@ export const OnboardingScreen = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
       </Animated.View>
+
+      {/* Render black background for system bottom navigation bar area if present */}
+      {insets.bottom > 0 && (
+        <View style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: insets.bottom,
+          backgroundColor: '#000000',
+        }} />
+      )}
     </Animated.View>
   );
 };

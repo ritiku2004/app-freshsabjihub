@@ -74,9 +74,9 @@ export async function calculateDeliveryETA(userLat, userLon, shopLat, shopLon) {
     travelTimeMins = roadDistanceKm * 3;
   }
 
-  // Add base preparation/dispatch time (e.g. 5 minutes)
-  const totalEtaMins = Math.round(travelTimeMins + 5);
+  // Add base preparation/dispatch time (increased by 5 mins to account for dispatch delays)
+  const totalEtaMins = Math.round(travelTimeMins + 10);
   
-  // Cap it reasonably (Minimum 10 mins)
-  return Math.max(10, totalEtaMins);
+  // Cap it reasonably (Minimum 15 mins)
+  return Math.max(15, totalEtaMins);
 }

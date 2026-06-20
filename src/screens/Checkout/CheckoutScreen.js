@@ -40,6 +40,10 @@ export const CheckoutScreen = ({ route, navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
+      if (route.params?.retryOrder) {
+        setIsLoading(false);
+        return;
+      }
       let isMounted = true;
       setIsLoading(true);
       fetchCart().finally(() => {
@@ -50,15 +54,46 @@ export const CheckoutScreen = ({ route, navigation }) => {
       return () => {
         isMounted = false;
       };
-    }, [fetchCart])
+    }, [fetchCart, route.params?.retryOrder])
   );
 
   // States
-  const [selectedMethod, setSelectedMethod] = useState('gpay'); // 'gpay' | 'phonepe' | 'paytm' | 'upi' | 'cod'
+  const [selectedMethod, setSelectedMethod] = useState('cod');
+  const [availableUpiApps, setAvailableUpiApps] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatusText, setPaymentStatusText] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [paymentParams, setPaymentParams] = useState(null);
+
+  const UPI_APPS = [
+    { id: 'gpay', name: 'Google Pay UPI', scheme: 'tez://upi', iconColor: '#1A73E8', bg: '#E8F0FE', char: 'G' },
+    { id: 'phonepe', name: 'PhonePe UPI', scheme: 'phonepe://', iconColor: '#5F259F', bg: '#F3E8FF', char: 'Pe' },
+    { id: 'paytm', name: 'Paytm UPI', scheme: 'paytmmp://', iconColor: '#00B9F1', bg: '#E0F7FA', char: 'Py' },
+    { id: 'bhim', name: 'BHIM UPI', scheme: 'bhim://', iconColor: '#E66928', bg: '#FFF3E0', char: 'Bh' }
+  ];
+
+  useEffect(() => {
+    const checkInstalledApps = async () => {
+      const detected = [];
+      for (const app of UPI_APPS) {
+        try {
+          const supported = await Linking.canOpenURL(app.scheme);
+          if (supported) {
+            detected.push(app);
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+      setAvailableUpiApps(detected);
+      if (detected.length > 0) {
+        setSelectedMethod(detected[0].id);
+      } else {
+        setSelectedMethod('cod');
+      }
+    };
+    checkInstalledApps();
+  }, []);
 
   // Animated scroll value for header hide/show
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -75,35 +110,74 @@ export const CheckoutScreen = ({ route, navigation }) => {
     extrapolate: 'clamp',
   });
 
-  // Bill Calculations using backend values
+  const retryOrder = route.params?.retryOrder;
+  const isRetry = !!retryOrder;
+
+  const displayItems = isRetry ? retryOrder.items : cartItems;
+  const displayDeliveryFee = isRetry ? (retryOrder.deliveryFee || 0) : deliveryFee;
+  const displayHandlingFee = isRetry ? (retryOrder.handlingFee || 0) : handlingFee;
+  const displayTip = isRetry ? (retryOrder.tipAmount || 0) : deliveryTip;
+  const displayGrandTotal = isRetry ? retryOrder.totalAmount : (cartGrandTotal + deliveryTip);
+  const displayAddress = isRetry ? retryOrder.address : activeAddress;
+  const totalQuantity = displayItems.reduce((acc, item) => acc + item.quantity, 0);
   const donationAmount = 0;
-  const itemsTotal = cartSubtotal;
-  const grandTotal = cartGrandTotal + deliveryTip + donationAmount;
-  const totalQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const itemsTotal = isRetry ? (displayGrandTotal - displayDeliveryFee - displayHandlingFee - displayTip) : cartSubtotal;
+  const grandTotal = displayGrandTotal;
 
   const handlePlaceOrder = async () => {
-    if (!activeAddress) {
+    if (!isRetry && !displayAddress) {
       Alert.alert('Address Required', 'Please select or add a delivery address to place your order.');
       return;
     }
-    if (!activeShop) {
+    if (!isRetry && !activeShop) {
       Alert.alert('Service Unavailable', 'We do not deliver to your selected address yet. Please change your delivery location.');
       return;
     }
 
     setIsProcessing(true);
-    setPaymentStatusText('Placing your order...');
+    setPaymentStatusText(isRetry ? 'Initiating retry payment...' : 'Placing your order...');
 
     try {
+      if (isRetry) {
+        const resData = await api.retryPayment(retryOrder.dbId || retryOrder.id);
+        setIsProcessing(false);
+
+        if (resData.success) {
+          const rawPhone = user?.phone_number || retryOrder.address?.receiverMobile || '';
+          const cleanedPhone = rawPhone.replace(/\D/g, '');
+          const finalPhone = cleanedPhone.length > 10 ? cleanedPhone.slice(-10) : (cleanedPhone || '9999999999');
+          const finalEmail = (user?.email && user.email.includes('@')) ? user.email.trim() : 'customer@freshsabjihub.com';
+          const finalName = `${retryOrder.address?.receiverName || user?.first_name || ''}`.trim() || 'Customer';
+
+          navigation.navigate('PaymentWebView', {
+            orderId: retryOrder.dbId || retryOrder.id,
+            orderNumber: retryOrder.order_number || retryOrder.id,
+            razorpayOrderId: resData.data.razorpayOrderId,
+            amount: resData.data.amount,
+            amountPaise: resData.data.amountPaise,
+            razorpayKeyId: resData.data.razorpayKeyId,
+            userName: finalName,
+            userEmail: finalEmail,
+            userPhone: finalPhone,
+            items: retryOrder.items || [],
+            address: retryOrder.address,
+            paymentMethod: selectedMethod
+          });
+        } else {
+          throw new Error(resData.message || 'Failed to initiate retry order');
+        }
+        return;
+      }
+
       const orderPayload = {
         shopId: activeShop.id,
-        addressId: activeAddress.id && !String(activeAddress.id).startsWith('addr') ? activeAddress.id : null,
-        items: cartItems,
+        addressId: displayAddress.id && !String(displayAddress.id).startsWith('addr') ? displayAddress.id : null,
+        items: displayItems,
         totalAmount: grandTotal,
-        tipAmount: deliveryTip,
+        tipAmount: displayTip,
         discountAmount: donationAmount > 0 ? 5 : 0,
-        handlingFee: handlingFee,
-        deliveryFee: deliveryFee,
+        handlingFee: displayHandlingFee,
+        deliveryFee: displayDeliveryFee,
         paymentMethod: selectedMethod
       };
 
@@ -111,17 +185,26 @@ export const CheckoutScreen = ({ route, navigation }) => {
       
       if (result.success && result.data) {
         if (result.data.paymentRequired) {
-          setPaymentStatusText('Opening payment application...');
-          setPaymentParams({
+          setIsProcessing(false);
+          const rawPhone = user?.phone_number || displayAddress?.receiverMobile || '';
+          const cleanedPhone = rawPhone.replace(/\D/g, '');
+          const finalPhone = cleanedPhone.length > 10 ? cleanedPhone.slice(-10) : (cleanedPhone || '9999999999');
+          const finalEmail = (user?.email && user.email.includes('@')) ? user.email.trim() : 'customer@freshsabjihub.com';
+          const finalName = `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'Customer';
+
+          navigation.navigate('PaymentWebView', {
             orderId: result.data.orderId,
             orderNumber: result.data.orderNumber,
             razorpayOrderId: result.data.razorpayOrderId,
             amount: result.data.amount,
             amountPaise: result.data.amountPaise,
             razorpayKeyId: result.data.razorpayKeyId,
-            userName: `${user?.first_name || ''} ${user?.last_name || ''}`.trim(),
-            userEmail: user?.email,
-            userPhone: user?.phone_number || activeAddress?.receiverMobile || '',
+            userName: finalName,
+            userEmail: finalEmail,
+            userPhone: finalPhone,
+            items: displayItems,
+            address: displayAddress,
+            paymentMethod: selectedMethod
           });
         } else {
           // COD Flow
@@ -129,12 +212,12 @@ export const CheckoutScreen = ({ route, navigation }) => {
             id: result.data.orderNumber,
             dbId: result.data.orderId,
             order_number: result.data.orderNumber,
-            items: cartItems,
+            items: displayItems,
             totalAmount: grandTotal,
             status: result.data.status,
             createdAt: result.data.createdAt,
             paymentMethod: 'Cash on Delivery',
-            address: activeAddress,
+            address: displayAddress,
           });
         }
       } else {
@@ -213,7 +296,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
               dbId: paymentParams.orderId,
               order_number: paymentParams.orderNumber,
               totalAmount: paymentParams.amount,
-              status: 'Processing',
+              status: 'Placed',
               payment_status: 'Paid',
               createdAt: new Date().toISOString(),
               items: cartItems,
@@ -432,11 +515,11 @@ export const CheckoutScreen = ({ route, navigation }) => {
 
         {/* Items Container Card */}
         <View style={styles.itemsContainerCard}>
-          {cartItems.map((item) => (
+          {displayItems.map((item) => (
             <View key={item.id} style={styles.itemRow}>
               {/* Product Photo Rounded box */}
               <View style={styles.itemImageWrapper}>
-                <Image source={{ uri: item.image }} style={styles.itemImage} resizeMode="contain" />
+                <Image source={{ uri: item.image || item.image_url }} style={styles.itemImage} resizeMode="contain" />
               </View>
 
               {/* Product Description details */}
@@ -462,69 +545,26 @@ export const CheckoutScreen = ({ route, navigation }) => {
         <View style={styles.paymentMethodCard}>
           <Text style={styles.sectionTitle}>Select Payment Option</Text>
           
-          <TouchableOpacity
-            style={[styles.paymentOptionRow, selectedMethod === 'gpay' && styles.paymentOptionRowActive]}
-            onPress={() => setSelectedMethod('gpay')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionLeft}>
-              <View style={[styles.optionIconContainer, { backgroundColor: '#E8F0FE' }]}>
-                <Text style={{ fontSize: rf(14), fontWeight: 'bold', color: '#1A73E8' }}>G</Text>
+          {availableUpiApps.map((app) => (
+            <TouchableOpacity
+              key={app.id}
+              style={[styles.paymentOptionRow, selectedMethod === app.id && styles.paymentOptionRowActive]}
+              onPress={() => setSelectedMethod(app.id)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.optionLeft}>
+                <View style={[styles.optionIconContainer, { backgroundColor: app.bg }]}>
+                  <Text style={{ fontSize: rf(14), fontWeight: 'bold', color: app.iconColor }}>{app.char}</Text>
+                </View>
+                <Text style={styles.optionLabel}>{app.name}</Text>
               </View>
-              <Text style={styles.optionLabel}>Google Pay UPI</Text>
-            </View>
-            <View style={[styles.radioCircle, selectedMethod === 'gpay' && styles.radioCircleActive]}>
-              {selectedMethod === 'gpay' && <View style={styles.radioInner} />}
-            </View>
-          </TouchableOpacity>
+              <View style={[styles.radioCircle, selectedMethod === app.id && styles.radioCircleActive]}>
+                {selectedMethod === app.id && <View style={styles.radioInner} />}
+              </View>
+            </TouchableOpacity>
+          ))}
 
-          <TouchableOpacity
-            style={[styles.paymentOptionRow, selectedMethod === 'phonepe' && styles.paymentOptionRowActive]}
-            onPress={() => setSelectedMethod('phonepe')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionLeft}>
-              <View style={[styles.optionIconContainer, { backgroundColor: '#F3E8FF' }]}>
-                <Text style={{ fontSize: rf(14), fontWeight: 'bold', color: '#5F259F' }}>Pe</Text>
-              </View>
-              <Text style={styles.optionLabel}>PhonePe UPI</Text>
-            </View>
-            <View style={[styles.radioCircle, selectedMethod === 'phonepe' && styles.radioCircleActive]}>
-              {selectedMethod === 'phonepe' && <View style={styles.radioInner} />}
-            </View>
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.paymentOptionRow, selectedMethod === 'paytm' && styles.paymentOptionRowActive]}
-            onPress={() => setSelectedMethod('paytm')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionLeft}>
-              <View style={[styles.optionIconContainer, { backgroundColor: '#E0F7FA' }]}>
-                <Text style={{ fontSize: rf(14), fontWeight: 'bold', color: '#00B9F1' }}>Py</Text>
-              </View>
-              <Text style={styles.optionLabel}>Paytm UPI</Text>
-            </View>
-            <View style={[styles.radioCircle, selectedMethod === 'paytm' && styles.radioCircleActive]}>
-              {selectedMethod === 'paytm' && <View style={styles.radioInner} />}
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.paymentOptionRow, selectedMethod === 'upi' && styles.paymentOptionRowActive]}
-            onPress={() => setSelectedMethod('upi')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionLeft}>
-              <View style={[styles.optionIconContainer, { backgroundColor: '#E8F5E9' }]}>
-                <Text style={{ fontSize: rf(12), fontWeight: 'bold', color: '#10B981' }}>UPI</Text>
-              </View>
-              <Text style={styles.optionLabel}>Other UPI App</Text>
-            </View>
-            <View style={[styles.radioCircle, selectedMethod === 'upi' && styles.radioCircleActive]}>
-              {selectedMethod === 'upi' && <View style={styles.radioInner} />}
-            </View>
-          </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.paymentOptionRow, selectedMethod === 'cod' && styles.paymentOptionRowActive]}
@@ -554,20 +594,20 @@ export const CheckoutScreen = ({ route, navigation }) => {
 
           <View style={styles.billRow}>
             <Text style={styles.billLabel}>Handling charge</Text>
-            <Text style={styles.billValue}>₹{handlingFee}</Text>
+            <Text style={styles.billValue}>₹{displayHandlingFee}</Text>
           </View>
 
           <View style={styles.billRow}>
             <Text style={styles.billLabel}>Delivery partner fee</Text>
-            <Text style={deliveryFee === 0 ? styles.billValueFree : styles.billValue}>
-              {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}
+            <Text style={displayDeliveryFee === 0 ? styles.billValueFree : styles.billValue}>
+              {displayDeliveryFee === 0 ? 'FREE' : `₹${displayDeliveryFee}`}
             </Text>
           </View>
 
-          {deliveryTip > 0 && (
+          {displayTip > 0 && (
             <View style={styles.billRow}>
               <Text style={styles.billLabel}>Delivery partner tip</Text>
-              <Text style={styles.billValue}>₹{deliveryTip}</Text>
+              <Text style={styles.billValue}>₹{displayTip}</Text>
             </View>
           )}
 
@@ -587,8 +627,8 @@ export const CheckoutScreen = ({ route, navigation }) => {
           <View style={styles.addressSnippetLeft}>
             <Text style={{ fontSize: rf(14) }}>🏠</Text>
             <Text style={styles.addressSnippetText} numberOfLines={1}>
-              {activeAddress
-                ? `Delivering to ${activeAddress.receiverName || user?.first_name || 'Customer'}: ${activeAddress.flatNo}, ${activeAddress.addressLine}`
+              {displayAddress
+                ? `Delivering to ${displayAddress.receiverName || user?.first_name || 'Customer'}: ${displayAddress.flatNo || ''}, ${displayAddress.addressLine || ''}`
                 : 'Please select a delivery address'}
             </Text>
           </View>

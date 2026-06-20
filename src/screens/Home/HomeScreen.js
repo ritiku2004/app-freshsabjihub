@@ -6,7 +6,6 @@ import {
   Image,
   Animated,
   TouchableOpacity,
-  FlatList,
   RefreshControl,
   Dimensions,
 } from 'react-native';
@@ -22,8 +21,6 @@ import { AuthContext } from '../../context/AuthContext';
 import { CartContext } from '../../context/CartContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { api } from '../../services/api';
-import { useDebounce } from '../../hooks/useDebounce';
-import { AppInput } from '../../components/AppInput';
 import { ProductCard } from '../../components/ProductCard';
 import { Loader } from '../../components/Loader';
 import { AnimatedSearchPlaceholder } from '../../components/AnimatedSearchPlaceholder';
@@ -50,11 +47,7 @@ export const HomeScreen = ({ navigation }) => {
   const { cartItems, addToCart, updateQuantity } = useContext(CartContext);
   const { unreadCount } = useNotifications();
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-
-  // Debounce search query
-  const debouncedSearch = useDebounce(searchQuery, 400);
 
   // React Query calls
   const { data: banners = [], isLoading: isLoadingBanners, refetch: refetchBanners } = useQuery({
@@ -93,8 +86,8 @@ export const HomeScreen = ({ navigation }) => {
   
   const allProducts = productsData?.products || [];
 
-  const isCategoriesLoading = isLoadingCategories || isFetchingCategories || isFetchingShop || (activeAddress && !activeShop) || isErrorCategories;
-  const isProductsLoading = isLoadingProducts || isFetchingProducts || isFetchingShop || (activeAddress && !activeShop) || isErrorProducts;
+  const isCategoriesLoading = activeShop?.id ? (isLoadingCategories || isFetchingCategories || isErrorCategories) : false;
+  const isProductsLoading = activeShop?.id ? (isLoadingProducts || isFetchingProducts || isErrorProducts) : false;
 
   const categoriesWithProducts = categories
     .map((cat) => {
@@ -103,13 +96,6 @@ export const HomeScreen = ({ navigation }) => {
     })
     .filter((cat) => cat.products.length > 0)
     .slice(0, 5);
-
-  const { data: searchData } = useQuery({
-    queryKey: ['liveSearch', debouncedSearch, activeShop?.id],
-    queryFn: () => api.getProducts({ shopId: activeShop?.id, search: debouncedSearch, limit: 5 }),
-    enabled: debouncedSearch.length >= 2 && !!activeShop?.id,
-  });
-  const searchResults = searchData?.products || [];
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -127,7 +113,7 @@ export const HomeScreen = ({ navigation }) => {
     return item ? item.id : null;
   };
 
-  const isScreenLoading = isLoadingBanners || isCategoriesLoading || isProductsLoading;
+  const isScreenLoading = isFetchingShop || isLoadingBanners || isCategoriesLoading || isProductsLoading;
 
   if (isScreenLoading && activeAddress) {
     return (
@@ -199,20 +185,23 @@ export const HomeScreen = ({ navigation }) => {
             colors={[theme.colors.primary, theme.colors.primary]}
             style={{ paddingTop: moderateScale(16), paddingHorizontal: theme.spacing.lg, paddingBottom: moderateScale(16) }}
           >
-            <View style={styles.searchContainer}>
-              <AppInput
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholder=""
-                icon={Search}
-                containerStyle={[styles.searchBarCurvy, { height: moderateScale(46) }]}
-                editable={false}
-              />
-              <AnimatedSearchPlaceholder isVisible={searchQuery.length === 0} />
-              <TouchableOpacity style={{ position: 'absolute', right: moderateScale(16), top: moderateScale(13) }}>
+            <TouchableOpacity
+              style={styles.searchContainer}
+              onPress={() => navigation.navigate('Search')}
+              activeOpacity={0.9}
+            >
+              <View style={styles.searchBarCurvyButton}>
+                <Search size={20} color={theme.colors.textSecondary} style={{ marginRight: theme.spacing.xs }} />
+                <AnimatedSearchPlaceholder isVisible={true} />
+              </View>
+              <TouchableOpacity 
+                style={{ position: 'absolute', right: moderateScale(16), top: moderateScale(13) }}
+                onPress={() => navigation.navigate('Search', { startVoice: true })}
+                activeOpacity={0.7}
+              >
                 <Mic size={20} color={theme.colors.textSecondary} />
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           </LinearGradient>
         </View>
 
@@ -303,53 +292,23 @@ export const HomeScreen = ({ navigation }) => {
             colors={[theme.colors.primary, theme.colors.primary]}
             style={{ paddingTop: moderateScale(16), paddingHorizontal: theme.spacing.lg, paddingBottom: moderateScale(16) }}
           >
-            <View style={styles.searchContainer}>
-              <AppInput
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholder=""
-                icon={Search}
-                containerStyle={[styles.searchBarCurvy, { height: moderateScale(46) }]}
-              />
-              <AnimatedSearchPlaceholder isVisible={searchQuery.length === 0} />
-              <TouchableOpacity style={{ position: 'absolute', right: moderateScale(16), top: moderateScale(13) }}>
+            <TouchableOpacity
+              style={styles.searchContainer}
+              onPress={() => navigation.navigate('Search')}
+              activeOpacity={0.9}
+            >
+              <View style={styles.searchBarCurvyButton}>
+                <Search size={20} color={theme.colors.textSecondary} style={{ marginRight: theme.spacing.xs }} />
+                <AnimatedSearchPlaceholder isVisible={true} />
+              </View>
+              <TouchableOpacity 
+                style={{ position: 'absolute', right: moderateScale(16), top: moderateScale(13) }}
+                onPress={() => navigation.navigate('Search', { startVoice: true })}
+                activeOpacity={0.7}
+              >
                 <Mic size={20} color={theme.colors.textSecondary} />
               </TouchableOpacity>
-
-              {debouncedSearch.length >= 2 && (
-                <View style={styles.searchResultsList}>
-                  {searchResults.length > 0 ? (
-                    <FlatList
-                      data={searchResults}
-                      keyExtractor={(item) => item.id}
-                      renderItem={({ item }) => (
-                        <TouchableOpacity
-                          style={styles.searchResultItem}
-                          onPress={() => {
-                            setSearchQuery('');
-                            navigation.navigate('ProductDetails', { productId: item.id });
-                          }}
-                          activeOpacity={0.8}
-                        >
-                          <Image source={{ uri: item.image }} style={styles.searchResultImage} resizeMode="contain" />
-                          <Text style={styles.searchResultName} numberOfLines={1}>
-                            {item.name}
-                          </Text>
-                          <Text style={styles.searchResultPrice}>₹{item.discountPrice || item.price}</Text>
-                        </TouchableOpacity>
-                      )}
-                      keyboardShouldPersistTaps="handled"
-                    />
-                  ) : (
-                    <View style={{ padding: theme.spacing.md, alignItems: 'center' }}>
-                      <Text style={{ color: theme.colors.textSecondary, fontSize: rf(13) }}>
-                        No products found matching "{debouncedSearch}"
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              )}
-            </View>
+            </TouchableOpacity>
           </LinearGradient>
         </View>
 
@@ -445,6 +404,7 @@ export const HomeScreen = ({ navigation }) => {
 
         </View>
       </ScrollView>
+
     </View>
   );
 };
