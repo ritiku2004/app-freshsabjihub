@@ -4,9 +4,6 @@
     "slug": "grocery-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "splash": {
-      "backgroundColor": "#064e3b"
-    },
     "icon": "./assets/Logo/logo.png",
     "userInterfaceStyle": "light",
     "ios": {
@@ -37,14 +34,6 @@
         "projectId": "8cea7043-aed6-4b13-8391-3ebfbddcf0f4"
       }
     },
-    "plugins": [
-      "./withUpiQueries",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#064e3b"
-        }
-      ]
-    ]
+    "plugins": ["./withUpiQueries"]
   }
 }

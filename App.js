@@ -11,15 +11,12 @@ import { NotificationProvider } from './src/context/NotificationContext';
 import { CartProvider } from './src/context/CartContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { registerForPushNotificationsAsync } from './src/services/notificationHelper';
-import { SplashScreen } from './src/screens/Splash/SplashScreen';
+
 import { OfflineOverlay } from './src/components/OfflineOverlay';
-import * as ExpoSplashScreen from 'expo-splash-screen';
+
 import * as NavigationBar from 'expo-navigation-bar';
 
-// Prevent the native splash screen from auto-hiding before the JS bundle is ready
-if (ExpoSplashScreen && typeof ExpoSplashScreen.preventAutoHideAsync === 'function') {
-  ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
-}
+
 
 // Initialize TanStack React Query Client
 const queryClient = new QueryClient({
@@ -54,15 +51,7 @@ export default function App() {
     setNavBarBlack();
   }, []);
 
-  if (showSplash) {
-    return (
-      <SafeAreaProvider>
-        <StatusBar style="light" backgroundColor="#064e3b" translucent={false} />
-        <SplashScreen onFinish={() => setShowSplash(false)} />
-        <OfflineOverlay />
-      </SafeAreaProvider>
-    );
-  }
+  
 
   return (
     <SafeAreaProvider>
