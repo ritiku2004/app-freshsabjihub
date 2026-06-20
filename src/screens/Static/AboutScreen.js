@@ -4,8 +4,10 @@ import { ArrowLeft, Sprout, ShieldCheck, Award, Smile, Clock, Heart, Leaf, Zap }
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../theme';
 import { moderateScale, rf } from '../../utils/responsive';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const AboutScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -13,7 +15,7 @@ export const AboutScreen = ({ navigation }) => {
         colors={[theme.colors.primary, theme.colors.secondary]} 
         start={{ x: 0, y: 0 }} 
         end={{ x: 1, y: 0 }} 
-        style={styles.header}
+        style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
       >
         <TouchableOpacity 
           onPress={() => navigation.goBack()} 
@@ -26,7 +28,7 @@ export const AboutScreen = ({ navigation }) => {
       </LinearGradient>
 
       <ScrollView 
-        contentContainerStyle={styles.scrollContainer} 
+        contentContainerStyle={[styles.scrollContainer, { paddingBottom: Math.max(insets.bottom + 16, theme.spacing.xl) }]} 
         showsVerticalScrollIndicator={false}
       >
         {/* Hero Banner Section */}
@@ -157,7 +159,7 @@ const styles = StyleSheet.create({
   },
   header: { 
     paddingHorizontal: theme.spacing.lg, 
-    paddingTop: Platform.OS === 'ios' ? moderateScale(48) : moderateScale(22), 
+    paddingTop: moderateScale(10), 
     paddingBottom: moderateScale(22), 
     flexDirection: 'row', 
     alignItems: 'center' 

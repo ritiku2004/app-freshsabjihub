@@ -10,6 +10,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   Keyboard,
+  Platform,
+  PermissionsAndroid,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -48,7 +51,7 @@ export const SearchScreen = ({ route, navigation }) => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
-  
+
   // Voice Search states
   const [isListening, setIsListening] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('Starting...');
@@ -56,11 +59,36 @@ export const SearchScreen = ({ route, navigation }) => {
   const debouncedQuery = useDebounce(query, 300);
   const textInputRef = useRef(null);
 
+  const startVoiceSearch = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+          {
+            title: 'Microphone Permission',
+            message: 'FreshSabjiHub needs access to your microphone to search products by voice.',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert('Permission Denied', 'Microphone permission is required for voice search.');
+          return;
+        }
+      } catch (err) {
+        console.warn(err);
+        return;
+      }
+    }
+    setVoiceStatus('Starting voice recognition...');
+    setIsListening(true);
+  };
+
   useEffect(() => {
     loadRecentSearches();
     if (route.params?.startVoice) {
-      setVoiceStatus('Starting voice recognition...');
-      setIsListening(true);
+      startVoiceSearch();
     } else {
       // Auto-focus input on mount
       setTimeout(() => {
@@ -184,7 +212,11 @@ export const SearchScreen = ({ route, navigation }) => {
         handleSelectQuery(data.text);
         setIsListening(false);
       } else if (data.type === 'error') {
-        setVoiceStatus('Could not hear you clearly. Select a suggestion.');
+        if (data.message === 'Not supported') {
+          setVoiceStatus('Voice search is not supported on this device.');
+        } else {
+          setVoiceStatus(data.message === 'not-allowed' ? 'Microphone blocked. Please grant access.' : `Error: ${data.message || 'Could not hear clearly'}`);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -198,7 +230,7 @@ export const SearchScreen = ({ route, navigation }) => {
       {/* Header with address and search bar */}
       <LinearGradient
         colors={[theme.colors.primary, theme.colors.primary]}
-        style={{ paddingTop: Math.max(insets.top, moderateScale(16)), paddingHorizontal: theme.spacing.lg, paddingBottom: moderateScale(16) }}
+        style={{ paddingTop: insets.top + moderateScale(10), paddingHorizontal: theme.spacing.lg, paddingBottom: moderateScale(16) }}
       >
         {/* Address Row */}
         <View style={styles.addressRow}>
@@ -282,7 +314,7 @@ export const SearchScreen = ({ route, navigation }) => {
                 <X size={18} color={theme.colors.textSecondary} />
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity onPress={() => { setVoiceStatus('Starting voice recognition...'); setIsListening(true); }} style={styles.micButton}>
+              <TouchableOpacity onPress={startVoiceSearch} style={styles.micButton}>
                 <Mic size={20} color={theme.colors.primary} />
               </TouchableOpacity>
             )}
@@ -292,7 +324,12 @@ export const SearchScreen = ({ route, navigation }) => {
 
       {/* Main body area */}
       {query.trim().length < 1 ? (
-        <ScrollView style={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.body} 
+          contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 16, 40) }}
+          keyboardShouldPersistTaps="handled" 
+          showsVerticalScrollIndicator={false}
+        >
           {/* Recent Searches */}
           {recentSearches.length > 0 && (
             <View style={styles.section}>
@@ -351,7 +388,7 @@ export const SearchScreen = ({ route, navigation }) => {
             <FlatList
               data={results}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.resultsGrid}
+              contentContainerStyle={[styles.resultsGrid, { paddingBottom: Math.max(insets.bottom + 24, 70) }]}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               numColumns={2}
@@ -390,7 +427,7 @@ export const SearchScreen = ({ route, navigation }) => {
             </View>
             <Text style={styles.voiceTitle}>Listening for Search</Text>
             <Text style={styles.voiceDesc}>{voiceStatus}</Text>
-            
+
             <Text style={styles.voiceSuggestHeader}>Popular Suggestions:</Text>
             <View style={styles.voiceSuggestionsRow}>
               {popularSuggestions.slice(0, 4).map((item) => (
@@ -409,7 +446,7 @@ export const SearchScreen = ({ route, navigation }) => {
               <Text style={styles.voiceCloseText}>Cancel</Text>
             </TouchableOpacity>
           </View>
-          
+
           <WebView
             source={{ html: speechHtml }}
             style={{ width: 0, height: 0, opacity: 0, position: 'absolute' }}
@@ -417,6 +454,11 @@ export const SearchScreen = ({ route, navigation }) => {
             javaScriptEnabled={true}
             domStorageEnabled={true}
             originWhitelist={['*']}
+            mediaPlaybackRequiresUserAction={false}
+            mediaCapturePermissionGrantType="grant"
+            onPermissionRequest={(event) => {
+              event.grant(event.resources);
+            }}
           />
         </View>
       )}

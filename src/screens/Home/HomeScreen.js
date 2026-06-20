@@ -26,6 +26,7 @@ import { Loader } from '../../components/Loader';
 import { AnimatedSearchPlaceholder } from '../../components/AnimatedSearchPlaceholder';
 import { LocationEmptyState } from '../../components/LocationEmptyState';
 import { BannerCarousel } from '../../components/BannerCarousel';
+import { BrandedFooter } from '../../components/BrandedFooter';
 import styles from './styles';
 import { moderateScale, rf } from '../../utils/responsive';
 
@@ -185,23 +186,23 @@ export const HomeScreen = ({ navigation }) => {
             colors={[theme.colors.primary, theme.colors.primary]}
             style={{ paddingTop: moderateScale(16), paddingHorizontal: theme.spacing.lg, paddingBottom: moderateScale(16) }}
           >
-            <TouchableOpacity
-              style={styles.searchContainer}
-              onPress={() => navigation.navigate('Search')}
-              activeOpacity={0.9}
-            >
-              <View style={styles.searchBarCurvyButton}>
+            <View style={styles.searchContainer}>
+              <TouchableOpacity
+                style={styles.searchBarCurvyButton}
+                onPress={() => navigation.navigate('Search')}
+                activeOpacity={0.9}
+              >
                 <Search size={20} color={theme.colors.textSecondary} style={{ marginRight: theme.spacing.xs }} />
                 <AnimatedSearchPlaceholder isVisible={true} />
-              </View>
+              </TouchableOpacity>
               <TouchableOpacity 
-                style={{ position: 'absolute', right: moderateScale(16), top: moderateScale(13) }}
+                style={{ position: 'absolute', right: moderateScale(12), top: moderateScale(9), padding: moderateScale(8) }}
                 onPress={() => navigation.navigate('Search', { startVoice: true })}
                 activeOpacity={0.7}
               >
                 <Mic size={20} color={theme.colors.textSecondary} />
               </TouchableOpacity>
-            </TouchableOpacity>
+            </View>
           </LinearGradient>
         </View>
 
@@ -292,23 +293,23 @@ export const HomeScreen = ({ navigation }) => {
             colors={[theme.colors.primary, theme.colors.primary]}
             style={{ paddingTop: moderateScale(16), paddingHorizontal: theme.spacing.lg, paddingBottom: moderateScale(16) }}
           >
-            <TouchableOpacity
-              style={styles.searchContainer}
-              onPress={() => navigation.navigate('Search')}
-              activeOpacity={0.9}
-            >
-              <View style={styles.searchBarCurvyButton}>
+            <View style={styles.searchContainer}>
+              <TouchableOpacity
+                style={styles.searchBarCurvyButton}
+                onPress={() => navigation.navigate('Search')}
+                activeOpacity={0.9}
+              >
                 <Search size={20} color={theme.colors.textSecondary} style={{ marginRight: theme.spacing.xs }} />
                 <AnimatedSearchPlaceholder isVisible={true} />
-              </View>
+              </TouchableOpacity>
               <TouchableOpacity 
-                style={{ position: 'absolute', right: moderateScale(16), top: moderateScale(13) }}
+                style={{ position: 'absolute', right: moderateScale(12), top: moderateScale(9), padding: moderateScale(8) }}
                 onPress={() => navigation.navigate('Search', { startVoice: true })}
                 activeOpacity={0.7}
               >
                 <Mic size={20} color={theme.colors.textSecondary} />
               </TouchableOpacity>
-            </TouchableOpacity>
+            </View>
           </LinearGradient>
         </View>
 
@@ -349,7 +350,7 @@ export const HomeScreen = ({ navigation }) => {
                 <View style={styles.categoryImageContainer}>
                   <Image source={{ uri: cat.image }} style={styles.categoryCircleImage} resizeMode="cover" />
                 </View>
-                <Text style={styles.categoryCircleName} numberOfLines={2}>
+                <Text style={styles.categoryCircleName} numberOfLines={1} ellipsizeMode="tail">
                   {cat.name}
                 </Text>
               </TouchableOpacity>
@@ -398,7 +399,7 @@ export const HomeScreen = ({ navigation }) => {
               )}
             </React.Fragment>
           ))}
-
+          <BrandedFooter />
           </View>
         )}
 

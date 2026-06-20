@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Platform } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -11,6 +11,12 @@ import { NotificationProvider } from './src/context/NotificationContext';
 import { CartProvider } from './src/context/CartContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { registerForPushNotificationsAsync } from './src/services/notificationHelper';
+
+import { OfflineOverlay } from './src/components/OfflineOverlay';
+
+import * as NavigationBar from 'expo-navigation-bar';
+
+
 
 // Initialize TanStack React Query Client
 const queryClient = new QueryClient({
@@ -24,11 +30,28 @@ const queryClient = new QueryClient({
   },
 });
 
+const setNavBarBlack = () => {
+  if (Platform.OS === 'android' && NavigationBar) {
+    if (typeof NavigationBar.setBackgroundColorAsync === 'function') {
+      NavigationBar.setBackgroundColorAsync('#000000').catch(() => {});
+    }
+    if (typeof NavigationBar.setButtonStyleAsync === 'function') {
+      NavigationBar.setButtonStyleAsync('light').catch(() => {});
+    }
+  }
+};
+
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
   useEffect(() => {
     // Request permission and register device push tokens on mount
     registerForPushNotificationsAsync();
+    // Set Android navigation bar to solid black with light icons
+    setNavBarBlack();
   }, []);
+
+  
 
   return (
     <SafeAreaProvider>
@@ -39,7 +62,7 @@ export default function App() {
             <AuthProvider>
               <NotificationProvider>
                 <CartProvider>
-                  <NavigationContainer>
+                  <NavigationContainer onStateChange={setNavBarBlack}>
                     <StatusBar style="light" backgroundColor="transparent" translucent={true} />
                     <AppNavigator />
                   </NavigationContainer>
@@ -49,6 +72,7 @@ export default function App() {
           </QueryClientProvider>
         </View>
       </View>
+      <OfflineOverlay />
     </SafeAreaProvider>
   );
 }

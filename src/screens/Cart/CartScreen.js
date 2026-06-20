@@ -129,7 +129,7 @@ export const CartScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
         >
           <Text style={styles.headerTitle}>Shopping Cart</Text>
         </LinearGradient>
@@ -149,7 +149,7 @@ export const CartScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
         >
           <Text style={styles.headerTitle}>Shopping Cart</Text>
         </LinearGradient>
@@ -166,7 +166,7 @@ export const CartScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
         >
           <Text style={styles.headerTitle}>Shopping Cart</Text>
         </LinearGradient>
@@ -252,7 +252,7 @@ export const CartScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} locations={[0, 0.55, 1]} style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}>
+      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} locations={[0, 0.55, 1]} style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}>
         <Text style={styles.headerTitle}>Shopping Cart ({cartItems.length} items)</Text>
       </LinearGradient>
 
@@ -403,7 +403,7 @@ export const CartScreen = ({ navigation }) => {
       </ScrollView>
 
       {/* Sticky Bottom Actions Bar */}
-      <View style={[styles.stickyFooter, { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) }]}>
+      <View style={[styles.stickyFooter, { paddingBottom: theme.spacing.md }]}>
         <View style={styles.addressSnippetRow}>
           <MapPin size={16} color={theme.colors.primary} />
           <Text style={styles.addressSnippetText} numberOfLines={1}>

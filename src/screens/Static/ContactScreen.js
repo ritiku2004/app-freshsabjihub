@@ -5,8 +5,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../theme';
 import { moderateScale, rf } from '../../utils/responsive';
 import { api } from '../../services/api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const ContactScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -76,7 +78,7 @@ export const ContactScreen = ({ navigation }) => {
         colors={[theme.colors.primary, theme.colors.secondary]} 
         start={{ x: 0, y: 0 }} 
         end={{ x: 1, y: 0 }} 
-        style={styles.header}
+        style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
       >
         <TouchableOpacity 
           onPress={() => navigation.goBack()} 
@@ -94,7 +96,7 @@ export const ContactScreen = ({ navigation }) => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
       >
         <ScrollView 
-          contentContainerStyle={styles.scrollContainer} 
+          contentContainerStyle={[styles.scrollContainer, { paddingBottom: Math.max(insets.bottom + 16, theme.spacing.xl) }]} 
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -282,7 +284,7 @@ const styles = StyleSheet.create({
   },
   header: { 
     paddingHorizontal: theme.spacing.lg, 
-    paddingTop: Platform.OS === 'ios' ? moderateScale(48) : moderateScale(22), 
+    paddingTop: moderateScale(10), 
     paddingBottom: moderateScale(22), 
     flexDirection: 'row', 
     alignItems: 'center' 

@@ -13,6 +13,7 @@ import { AuthContext } from '../../context/AuthContext';
 import styles from './styles';
 import { moderateScale, rf } from '../../utils/responsive';
 import { ChevronRight } from 'lucide-react-native';
+import { BrandedFooter } from '../../components/BrandedFooter';
 
 
 
@@ -52,7 +53,7 @@ export const CategoriesScreen = ({ navigation }) => {
       <LinearGradient 
         colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} 
         locations={[0, 0.55, 1]} 
-        style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+        style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
       >
         <Text style={styles.headerTitle}>All Categories</Text>
       </LinearGradient>
@@ -102,6 +103,7 @@ export const CategoriesScreen = ({ navigation }) => {
               </TouchableOpacity>
             ))}
           </View>
+          <BrandedFooter />
         </ScrollView>
       )}
     </View>

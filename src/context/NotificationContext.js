@@ -27,6 +27,32 @@ export const NotificationProvider = ({ children }) => {
         const stored = await AsyncStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
         if (stored) {
           setNotifications(JSON.parse(stored));
+        } else {
+          // Initialize with beautiful default history notifications so the screen is never blank
+          const defaults = [
+            {
+              id: 'welcome_notif',
+              title: 'Welcome to Fresh Sabji Hub! 🥬',
+              message: 'Get farm-fresh vegetables, fruits, and daily grocery essentials delivered straight to your doorstep in superfast time.',
+              type: 'system',
+              time: 'Just now',
+              timestamp: Date.now() - 1000 * 60 * 5, // 5 minutes ago
+              isRead: false,
+              clickable: false,
+            },
+            {
+              id: 'promo_notif',
+              title: 'Opening Special Discount! 🎉',
+              message: 'Enjoy up to 10% off on premium fresh produce and daily essentials on your first transaction.',
+              type: 'promo',
+              time: '10m ago',
+              timestamp: Date.now() - 1000 * 60 * 15, // 15 minutes ago
+              isRead: false,
+              clickable: true,
+            }
+          ];
+          setNotifications(defaults);
+          await AsyncStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(defaults));
         }
       } catch (error) {
         console.error('Failed to load notifications:', error);

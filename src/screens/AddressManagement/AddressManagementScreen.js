@@ -260,7 +260,7 @@ export const AddressManagementScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
         >
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <ArrowLeft size={24} color={theme.colors.white} />
@@ -281,7 +281,7 @@ export const AddressManagementScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
         >
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7} disabled={isProcessing}>
             <ArrowLeft size={24} color={theme.colors.white} />

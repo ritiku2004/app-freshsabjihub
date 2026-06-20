@@ -25,6 +25,7 @@ import { TextInput } from 'react-native';
 import { moderateScale, rf } from '../../utils/responsive';
 import { API_BASE_URL } from '../../config/env';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Loader } from '../../components/Loader';
 
 const resolveAvatarUrl = (url) => {
@@ -85,6 +86,7 @@ const PRESET_AVATARS = [
 ];
 
 export const ProfileScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const { user, logout, updateUser, refreshProfile, isAuthenticated } = useContext(AuthContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalDetails, setModalDetails] = useState({ title: '', content: '' });
@@ -270,7 +272,7 @@ export const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} locations={[0, 0.55, 1]} style={styles.header}>
+      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} locations={[0, 0.55, 1]} style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}>
         <Text style={styles.headerTitle}>My Profile</Text>
       </LinearGradient>
 
@@ -487,7 +489,7 @@ export const ProfileScreen = ({ navigation }) => {
                     <Camera size={13} color="#FFF" />
                   </View>
                 </TouchableOpacity>
-                <Text style={{ fontSize: rf(11), color: theme.colors.textSecondary, marginTop: moderateScale(6), fontWeight: '600' }}>
+                <Text style={{ fontSize: rf(11), color: theme.colors.textSecondary, paddingTop: moderateScale(10), fontWeight: '600' }}>
                   Tap to upload custom photo
                 </Text>
               </View>
