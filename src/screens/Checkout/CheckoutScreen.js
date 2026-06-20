@@ -65,7 +65,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
   const [paymentParams, setPaymentParams] = useState(null);
 
   // Swipe to Pay Gesture States & Handlers
-  const containerWidthRef = useRef(0);
+  const [containerWidth, setContainerWidth] = useState(0);
   const swipeX = useRef(new Animated.Value(0)).current;
   const [swipeCompleted, setSwipeCompleted] = useState(false);
 
@@ -113,7 +113,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
       onMoveShouldSetPanResponder: () => !isProcessing && !swipeCompleted,
       onPanResponderMove: (evt, gestureState) => {
         if (isProcessing || swipeCompleted) return;
-        const maxSwipe = containerWidthRef.current - moderateScale(52); // 46 width + 6 margins
+        const maxSwipe = containerWidth - moderateScale(54); // 48 width + 6 margins
         if (maxSwipe <= 0) return;
         
         let newX = gestureState.dx;
@@ -124,16 +124,16 @@ export const CheckoutScreen = ({ route, navigation }) => {
       },
       onPanResponderRelease: (evt, gestureState) => {
         if (isProcessing || swipeCompleted) return;
-        const maxSwipe = containerWidthRef.current - moderateScale(52);
+        const maxSwipe = containerWidth - moderateScale(54);
         if (maxSwipe <= 0) return;
 
-        // If swiped more than 82%, trigger payment
-        if (gestureState.dx >= maxSwipe * 0.82) {
+        // If swiped more than 80%, trigger payment
+        if (gestureState.dx >= maxSwipe * 0.80) {
           setSwipeCompleted(true);
           Animated.timing(swipeX, {
             toValue: maxSwipe,
             duration: 150,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }).start(() => {
             handlePlaceOrder();
           });
@@ -143,7 +143,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
             toValue: 0,
             tension: 40,
             friction: 7,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }).start();
         }
       },
@@ -157,7 +157,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
       Animated.timing(swipeX, {
         toValue: 0,
         duration: 200,
-        useNativeDriver: false,
+        useNativeDriver: true,
       }).start();
     }
   }, [isProcessing]);
@@ -549,6 +549,12 @@ export const CheckoutScreen = ({ route, navigation }) => {
     );
   }
 
+  const progressTranslateX = swipeX.interpolate({
+    inputRange: [0, containerWidth - moderateScale(54) > 0 ? containerWidth - moderateScale(54) : 1],
+    outputRange: [-(containerWidth > 0 ? containerWidth : 350), 0],
+    extrapolate: 'clamp',
+  });
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Static Header — matches other screens */}
@@ -672,35 +678,36 @@ export const CheckoutScreen = ({ route, navigation }) => {
           <View 
             style={{ 
               flex: 1, 
-              height: moderateScale(52), 
-              backgroundColor: '#F1F5F9', 
-              borderRadius: moderateScale(26),
+              height: moderateScale(54), 
+              backgroundColor: '#064e3b', // Deep organic dark forest green
+              borderRadius: moderateScale(27),
               padding: moderateScale(3),
               justifyContent: 'center',
               position: 'relative',
               overflow: 'hidden',
-              borderWidth: 1,
-              borderColor: '#E2E8F0'
+              borderWidth: 1.5,
+              borderColor: '#047857'
             }}
             onLayout={(e) => {
-              containerWidthRef.current = e.nativeEvent.layout.width;
+              setContainerWidth(e.nativeEvent.layout.width);
             }}
           >
-            {/* Sturdy Background Green Progress track */}
+            {/* GPU-Accelerated Green Progress track reveal (No width layout animation) */}
             <Animated.View 
               style={{
                 position: 'absolute',
                 left: 0,
                 top: 0,
                 bottom: 0,
-                width: Animated.add(swipeX, moderateScale(46)),
+                right: 0,
+                transform: [{ translateX: progressTranslateX }],
               }}
             >
               <LinearGradient
-                colors={['#10b981', '#059669', '#047857']}
+                colors={['#10b981', '#059669']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={{ flex: 1, borderRadius: moderateScale(26) }}
+                style={{ flex: 1, borderRadius: moderateScale(27) }}
               />
             </Animated.View>
             
@@ -709,14 +716,11 @@ export const CheckoutScreen = ({ route, navigation }) => {
               style={{
                 position: 'absolute',
                 alignSelf: 'center',
-                color: swipeX.interpolate({
-                  inputRange: [0, 80],
-                  outputRange: ['#475569', '#ffffff'],
-                  extrapolate: 'clamp',
-                }),
-                fontWeight: '800',
-                fontSize: rf(12),
-                letterSpacing: 0.5,
+                color: '#ffffff',
+                fontWeight: '900',
+                fontSize: rf(11.5),
+                letterSpacing: 0.8,
+                textTransform: 'uppercase',
                 opacity: Animated.multiply(
                   swipeX.interpolate({
                     inputRange: [0, 80],
@@ -734,25 +738,25 @@ export const CheckoutScreen = ({ route, navigation }) => {
             <Animated.View
               {...panResponder.panHandlers}
               style={{
-                width: moderateScale(46),
-                height: moderateScale(46),
-                borderRadius: moderateScale(23),
+                width: moderateScale(48),
+                height: moderateScale(48),
+                borderRadius: moderateScale(24),
                 backgroundColor: '#ffffff',
                 alignItems: 'center',
                 justifyContent: 'center',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.15,
-                shadowRadius: 4,
-                elevation: 4,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.22,
+                shadowRadius: 4.5,
+                elevation: 5,
                 transform: [{ translateX: swipeX }],
               }}
             >
               {isProcessing ? (
-                <ActivityIndicator size="small" color={theme.colors.success} />
+                <ActivityIndicator size="small" color="#059669" />
               ) : (
                 <Animated.View style={{ transform: [{ scale: arrowScale }] }}>
-                  <Text style={{ fontSize: rf(16), color: theme.colors.success, fontWeight: '900' }}>➔</Text>
+                  <Text style={{ fontSize: rf(16), color: '#059669', fontWeight: '900' }}>»</Text>
                 </Animated.View>
               )}
             </Animated.View>
