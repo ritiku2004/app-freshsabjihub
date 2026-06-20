@@ -1,8 +1,9 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, StyleSheet, Alert, Linking, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Alert, Linking, Text, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Shield } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../theme';
 import { api } from '../../services/api';
 import { API_BASE_URL } from '../../config/env';
@@ -276,6 +277,8 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
   `;
 
   const [isLoadingWebview, setIsLoadingWebview] = useState(true);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
 
   const handleNavigationStateChange = (navState) => {
     const { url } = navState;
@@ -376,29 +379,12 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
       } else if (data.status === 'cancelled') {
         Alert.alert(
           'Payment Cancelled',
-          'Your payment was cancelled. You can complete this payment anytime from your order history.',
+          'Your payment was cancelled. You can complete your order anytime from the cart.',
           [
             {
-              text: 'View Order Details',
+              text: 'OK',
               onPress: () => {
-                const fallbackOrder = {
-                  id: orderNumber,
-                  dbId: orderId,
-                  order_number: orderNumber,
-                  totalAmount: amount,
-                  status: 'Pending Payment',
-                  payment_status: 'Pending',
-                  createdAt: new Date().toISOString(),
-                  items: route.params.items || [],
-                  address: route.params.address
-                };
-                navigation.reset({
-                  index: 1,
-                  routes: [
-                    { name: 'MainTabs' },
-                    { name: 'OrderDetails', params: { order: fallbackOrder } },
-                  ],
-                });
+                navigation.goBack();
               }
             }
           ]
@@ -411,25 +397,7 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
             {
               text: 'OK',
               onPress: () => {
-                // Navigate to Order details so user can retry payment
-                const failedOrder = {
-                  id: orderNumber,
-                  dbId: orderId,
-                  order_number: orderNumber,
-                  totalAmount: amount,
-                  status: 'Pending Payment',
-                  payment_status: 'Pending',
-                  createdAt: new Date().toISOString(),
-                  items: route.params.items || [],
-                  address: route.params.address
-                };
-                navigation.reset({
-                  index: 1,
-                  routes: [
-                    { name: 'MainTabs' },
-                    { name: 'OrderDetails', params: { order: failedOrder } },
-                  ],
-                });
+                navigation.goBack();
               }
             }
           ]
@@ -497,68 +465,66 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      // If we are currently verifying signature, prevent leaving
       if (isVerifying) {
         e.preventDefault();
         return;
       }
 
-      // Allow reset actions to proceed
       if (e.data.action.type === 'RESET') {
         return;
       }
 
       e.preventDefault();
-
-      Alert.alert(
-        'Cancel Payment?',
-        'If you exit now, your order will remain pending. You can complete the payment anytime from your order details.',
-        [
-          { text: 'Keep Paying', style: 'cancel' },
-          {
-            text: 'Exit',
-            style: 'destructive',
-            onPress: () => {
-              const fallbackOrder = {
-                id: orderNumber,
-                dbId: orderId,
-                order_number: orderNumber,
-                totalAmount: amount,
-                status: 'Pending Payment',
-                payment_status: 'Pending',
-                createdAt: new Date().toISOString(),
-                items: route.params.items || [],
-                address: route.params.address
-              };
-              navigation.reset({
-                index: 1,
-                routes: [
-                  { name: 'MainTabs' },
-                  { name: 'OrderDetails', params: { order: fallbackOrder } },
-                ],
-              });
-            }
-          }
-        ]
-      );
+      setPendingAction(e.data.action);
+      setShowCancelModal(true);
     });
 
     return unsubscribe;
   }, [navigation, isVerifying, orderId, orderNumber, amount, route.params.items, route.params.address]);
 
-  return (
-    <View style={[styles.container, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}>
-      {/* Secure Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} disabled={isVerifying}>
-          <ArrowLeft size={24} color={theme.colors.textPrimary} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Shield size={16} color={theme.colors.success} style={{ marginRight: 6 }} />
-          <Text style={styles.headerTitle}>100% Secure Checkout</Text>
-        </View>
-      </View>
+  const injectedJavaScript = `
+    (function() {
+      function hideTargetElements() {
+        const elements = document.querySelectorAll('div, span, p, h1, h2, h3, section, button');
+        elements.forEach(el => {
+          if (el.textContent && (el.textContent === 'Price Summary' || el.textContent.includes('Price Summary'))) {
+            const parent = el.closest('div');
+            if (parent) {
+              parent.style.setProperty('display', 'none', 'important');
+            }
+          }
+          if (el.textContent && (el.textContent.includes('Using as') || el.textContent.includes('Using as +91'))) {
+            const parent = el.closest('div');
+            if (parent) {
+              parent.style.setProperty('display', 'none', 'important');
+            }
+          }
+        });
 
+        const selectors = [
+          '[class*="price-summary"]',
+          '[class*="priceSummary"]',
+          '[class*="user-info"]',
+          '[class*="userInfo"]',
+          '[class*="contact"]',
+          '.price-summary-container',
+          '.user-info-container'
+        ];
+        selectors.forEach(sel => {
+          const matched = document.querySelectorAll(sel);
+          matched.forEach(item => {
+            item.style.setProperty('display', 'none', 'important');
+          });
+        });
+      }
+      hideTargetElements();
+      setInterval(hideTargetElements, 100);
+    })();
+    true;
+  `;
+
+  return (
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: '#15803d' }]}>
       {/* WebView Wrapper */}
       <View style={styles.webViewWrapper}>
         {!isVerifying ? (
@@ -575,6 +541,7 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
               originWhitelist={['*']}
               mixedContentMode="always"
               allowFileAccess={true}
+              injectedJavaScript={injectedJavaScript}
             />
             {isLoadingWebview && (
               <View style={[StyleSheet.absoluteFill, styles.verifyingContainer, { backgroundColor: '#ffffff' }]}>
@@ -594,6 +561,91 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
           </View>
         )}
       </View>
+
+      {/* Premium Custom Cancel Modal */}
+      <Modal
+        visible={showCancelModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowCancelModal(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 24
+        }}>
+          <View style={{
+            backgroundColor: '#ffffff',
+            borderRadius: 16,
+            padding: 24,
+            width: '100%',
+            maxWidth: 320,
+            alignItems: 'center',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
+            elevation: 10
+          }}>
+            <Text style={{ fontSize: 24, marginBottom: 12 }}>⚠️</Text>
+            <Text style={{
+              fontSize: 18,
+              fontWeight: '800',
+              color: '#1e293b',
+              marginBottom: 10,
+              textAlign: 'center'
+            }}>
+              Cancel Payment?
+            </Text>
+            <Text style={{
+              fontSize: 13,
+              color: '#64748b',
+              textAlign: 'center',
+              lineHeight: 18,
+              marginBottom: 24
+            }}>
+              Are you sure you want to cancel the payment? Your order will not be completed and your cart will remain active.
+            </Text>
+            
+            <View style={{ flexDirection: 'row', width: '100%', gap: 12 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowCancelModal(false);
+                  setPendingAction(null);
+                }}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 10,
+                  backgroundColor: '#f1f5f9',
+                  alignItems: 'center'
+                }}
+              >
+                <Text style={{ color: '#475569', fontWeight: '700', fontSize: 14 }}>Keep Paying</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowCancelModal(false);
+                  if (pendingAction) {
+                    navigation.dispatch(pendingAction);
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 10,
+                  backgroundColor: '#ef4444',
+                  alignItems: 'center'
+                }}
+              >
+                <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 14 }}>Exit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -626,6 +678,7 @@ const styles = StyleSheet.create({
   },
   webViewWrapper: {
     flex: 1,
+    backgroundColor: '#ffffff',
   },
   webView: {
     flex: 1,

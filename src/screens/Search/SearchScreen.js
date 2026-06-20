@@ -48,7 +48,7 @@ export const SearchScreen = ({ route, navigation }) => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
-  
+
   // Voice Search states
   const [isListening, setIsListening] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('Starting...');
@@ -390,7 +390,7 @@ export const SearchScreen = ({ route, navigation }) => {
             </View>
             <Text style={styles.voiceTitle}>Listening for Search</Text>
             <Text style={styles.voiceDesc}>{voiceStatus}</Text>
-            
+
             <Text style={styles.voiceSuggestHeader}>Popular Suggestions:</Text>
             <View style={styles.voiceSuggestionsRow}>
               {popularSuggestions.slice(0, 4).map((item) => (
@@ -409,7 +409,7 @@ export const SearchScreen = ({ route, navigation }) => {
               <Text style={styles.voiceCloseText}>Cancel</Text>
             </TouchableOpacity>
           </View>
-          
+
           <WebView
             source={{ html: speechHtml }}
             style={{ width: 0, height: 0, opacity: 0, position: 'absolute' }}

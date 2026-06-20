@@ -684,7 +684,9 @@ export const CheckoutScreen = ({ route, navigation }) => {
             }}
             onLayout={(e) => {
               containerWidthRef.current = e.nativeEvent.layout.width;
-                    {/* Sturdy Background Green Progress track */}
+            }}
+          >
+            {/* Sturdy Background Green Progress track */}
             <Animated.View 
               style={{
                 position: 'absolute',
