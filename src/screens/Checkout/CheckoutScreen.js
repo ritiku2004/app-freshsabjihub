@@ -1,5 +1,5 @@
 import React, { useState, useContext, useRef, useCallback, useEffect } from 'react';
-import { View, Text, Animated, TouchableOpacity, Image, Alert, ScrollView, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, Animated, TouchableOpacity, Image, Alert, ScrollView, Linking, ActivityIndicator, PanResponder } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -63,6 +63,66 @@ export const CheckoutScreen = ({ route, navigation }) => {
   const [paymentStatusText, setPaymentStatusText] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [paymentParams, setPaymentParams] = useState(null);
+
+  // Swipe to Pay Gesture States & Handlers
+  const containerWidthRef = useRef(0);
+  const swipeX = useRef(new Animated.Value(0)).current;
+  const [swipeCompleted, setSwipeCompleted] = useState(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => !isProcessing && !swipeCompleted,
+      onMoveShouldSetPanResponder: () => !isProcessing && !swipeCompleted,
+      onPanResponderMove: (evt, gestureState) => {
+        if (isProcessing || swipeCompleted) return;
+        const maxSwipe = containerWidthRef.current - moderateScale(52); // 46 width + 6 margins
+        if (maxSwipe <= 0) return;
+        
+        let newX = gestureState.dx;
+        if (newX < 0) newX = 0;
+        if (newX > maxSwipe) newX = maxSwipe;
+        
+        swipeX.setValue(newX);
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (isProcessing || swipeCompleted) return;
+        const maxSwipe = containerWidthRef.current - moderateScale(52);
+        if (maxSwipe <= 0) return;
+
+        // If swiped more than 82%, trigger payment
+        if (gestureState.dx >= maxSwipe * 0.82) {
+          setSwipeCompleted(true);
+          Animated.timing(swipeX, {
+            toValue: maxSwipe,
+            duration: 150,
+            useNativeDriver: false,
+          }).start(() => {
+            handlePlaceOrder();
+          });
+        } else {
+          // Spring back
+          Animated.spring(swipeX, {
+            toValue: 0,
+            tension: 40,
+            friction: 7,
+            useNativeDriver: false,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  // Reset swipe state when processing completes or re-triggers
+  useEffect(() => {
+    if (!isProcessing) {
+      setSwipeCompleted(false);
+      Animated.timing(swipeX, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [isProcessing]);
 
   // Animated scroll value for header hide/show
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -562,20 +622,93 @@ export const CheckoutScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Bottom deck actions: Selected Method + Green Place Order Button */}
+        {/* Bottom deck actions: Price + Custom Swipe to Pay Slider */}
         <View style={styles.checkoutActionRow}>
-          <TouchableOpacity
-            style={[styles.greenPlaceOrderBtn, { flex: 1, marginLeft: 0 }]}
-            onPress={handlePlaceOrder}
-            activeOpacity={0.9}
+          {/* Price Box */}
+          <View style={{ marginRight: moderateScale(16), justifyContent: 'center' }}>
+            <Text style={{ fontSize: rf(20), fontWeight: '900', color: theme.colors.textPrimary }}>₹{grandTotal}</Text>
+            <Text style={{ fontSize: rf(9), color: theme.colors.textSecondary, fontWeight: '700', textTransform: 'uppercase' }}>Total Amount</Text>
+          </View>
+
+          {/* Swipe Slider */}
+          <View 
+            style={{ 
+              flex: 1, 
+              height: moderateScale(52), 
+              backgroundColor: '#F1F5F9', 
+              borderRadius: moderateScale(26),
+              padding: moderateScale(3),
+              justifyContent: 'center',
+              position: 'relative',
+              overflow: 'hidden',
+              borderWidth: 1,
+              borderColor: '#E2E8F0'
+            }}
+            onLayout={(e) => {
+              containerWidthRef.current = e.nativeEvent.layout.width;
+            }}
           >
-            <View style={styles.btnPriceBox}>
-              <Text style={styles.btnPriceText}>₹{grandTotal}</Text>
-              <Text style={styles.btnPriceLabel}>TOTAL</Text>
-            </View>
-            <View style={styles.btnDivider} />
-            <Text style={styles.btnRightText}>Pay & Place Order ‣</Text>
-          </TouchableOpacity>
+            {/* Sturdy Background Green Progress track */}
+            <Animated.View 
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                backgroundColor: theme.colors.success,
+                borderRadius: moderateScale(26),
+                width: Animated.add(swipeX, moderateScale(46)),
+              }}
+            />
+            
+            {/* Sliding text helper */}
+            <Animated.Text
+              style={{
+                position: 'absolute',
+                alignSelf: 'center',
+                color: swipeX.interpolate({
+                  inputRange: [0, 80],
+                  outputRange: ['#475569', '#ffffff'],
+                  extrapolate: 'clamp',
+                }),
+                fontWeight: '800',
+                fontSize: rf(12),
+                letterSpacing: 0.5,
+                opacity: swipeX.interpolate({
+                  inputRange: [0, 80],
+                  outputRange: [1, 0],
+                  extrapolate: 'clamp',
+                }),
+              }}
+            >
+              Swipe to Pay ➔
+            </Animated.Text>
+
+            {/* Drag Handle Thumb */}
+            <Animated.View
+              {...panResponder.panHandlers}
+              style={{
+                width: moderateScale(46),
+                height: moderateScale(46),
+                borderRadius: moderateScale(23),
+                backgroundColor: '#ffffff',
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.15,
+                shadowRadius: 4,
+                elevation: 4,
+                transform: [{ translateX: swipeX }],
+              }}
+            >
+              {isProcessing ? (
+                <ActivityIndicator size="small" color={theme.colors.success} />
+              ) : (
+                <Text style={{ fontSize: rf(16), color: theme.colors.success, fontWeight: '900' }}>➔</Text>
+              )}
+            </Animated.View>
+          </View>
         </View>
       </View>
 
