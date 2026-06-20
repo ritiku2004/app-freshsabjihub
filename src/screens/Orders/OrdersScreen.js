@@ -12,11 +12,12 @@ import { AppButton } from '../../components/AppButton';
 import { Loader } from '../../components/Loader';
 import { LocationEmptyState } from '../../components/LocationEmptyState';
 import { api } from '../../services/api';
+import { BrandedFooter } from '../../components/BrandedFooter';
 import styles from './styles';
 import { moderateScale, rf } from '../../utils/responsive';
 
 export const OrdersScreen = ({ navigation }) => {
-  const { user, activeAddress, serviceAvailable, isAuthenticated } = useContext(AuthContext);
+  const { user, activeAddress, serviceAvailable, isAuthenticated, deliveryETA } = useContext(AuthContext);
   const { orderAgain } = useContext(CartContext);
   const insets = useSafeAreaInsets();
   const [orders, setOrders] = useState([]);
@@ -59,6 +60,7 @@ export const OrdersScreen = ({ navigation }) => {
               city: order.city,
               state: order.state,
               zipcode: order.zipcode,
+              type: order.address_title || 'Home',
             } : null,
             items: (order.items || []).map(item => ({
               id: item.id,
@@ -246,7 +248,7 @@ export const OrdersScreen = ({ navigation }) => {
             <Text style={styles.deliveryTimeInfo}>
               {status.text === 'Delivered'
                 ? 'Delivered to ' + (item.address?.type || 'Home')
-                : 'ETA: 10 mins'}
+                : `ETA: ${deliveryETA || 12} mins`}
             </Text>
           </View>
         </View>
@@ -289,7 +291,7 @@ export const OrdersScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
         >
           <Text style={styles.headerTitle}>Your Orders</Text>
         </LinearGradient>
@@ -308,7 +310,7 @@ export const OrdersScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
         >
           <Text style={styles.headerTitle}>Your Orders</Text>
         </LinearGradient>
@@ -323,7 +325,7 @@ export const OrdersScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
         >
           <Text style={styles.headerTitle}>Your Orders</Text>
         </LinearGradient>
@@ -367,7 +369,7 @@ export const OrdersScreen = ({ navigation }) => {
       <LinearGradient
         colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
         locations={[0, 0.55, 1]}
-        style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+        style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
       >
         <Text style={styles.headerTitle}>Your Orders</Text>
       </LinearGradient>
@@ -378,6 +380,7 @@ export const OrdersScreen = ({ navigation }) => {
         renderItem={renderOrderItem}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        ListFooterComponent={BrandedFooter}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[theme.colors.primary]} />
         }

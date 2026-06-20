@@ -485,6 +485,47 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
   const injectedJavaScript = `
     (function() {
       function hideTargetElements() {
+        // Hide Razorpay merchant header (various selectors Razorpay uses)
+        const headerSelectors = [
+          '[class*="header"]',
+          '[class*="Header"]',
+          '[class*="merchant"]',
+          '[class*="Merchant"]',
+          '[class*="razorpay-header"]',
+          '[class*="checkout-header"]',
+          '.header',
+          '.merchant-header',
+          '.razorpay-header',
+          '#razorpay-header'
+        ];
+        headerSelectors.forEach(sel => {
+          try {
+            const matched = document.querySelectorAll(sel);
+            matched.forEach(item => {
+              const rect = item.getBoundingClientRect();
+              // Only hide elements near the top of the page (header region)
+              if (rect.top >= 0 && rect.top < 120 && rect.width > 100) {
+                item.style.setProperty('display', 'none', 'important');
+              }
+            });
+          } catch(e) {}
+        });
+
+        // Hide by merchant name text content
+        const allDivs = document.querySelectorAll('div, header, nav, section');
+        allDivs.forEach(el => {
+          try {
+            const rect = el.getBoundingClientRect();
+            if (rect.top >= 0 && rect.top < 80 && rect.height > 0 && rect.height < 100 && rect.width > 200) {
+              const text = el.textContent || '';
+              if (text.includes('Fresh Sabji') || text.includes('Sabji Hub') || text.includes('FreshSabji')) {
+                el.style.setProperty('display', 'none', 'important');
+              }
+            }
+          } catch(e) {}
+        });
+
+        // Existing selectors
         const elements = document.querySelectorAll('div, span, p, h1, h2, h3, section, button');
         elements.forEach(el => {
           if (el.textContent && (el.textContent === 'Price Summary' || el.textContent.includes('Price Summary'))) {
@@ -505,7 +546,7 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
           '[class*="price-summary"]',
           '[class*="priceSummary"]',
           '[class*="user-info"]',
-          '[class*="userInfo"]',
+          '[class*="userInfo\"]',
           '[class*="contact"]',
           '.price-summary-container',
           '.user-info-container'
@@ -524,9 +565,9 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
   `;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: '#15803d' }]}>
+    <View style={[styles.container, { backgroundColor: '#15803d' }]}>
       {/* WebView Wrapper */}
-      <View style={styles.webViewWrapper}>
+      <View style={[styles.webViewWrapper, { paddingBottom: insets.bottom }]}>
         {!isVerifying ? (
           <>
             <WebView

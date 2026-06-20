@@ -20,7 +20,7 @@ export const Loader = ({ text = 'Freshness on the way' }) => {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #ffffff; /* White background */
+            background-color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tipText: {
-    marginTop: -55, // Shifted significantly up to align right below the cart graphic
+    marginTop: -55,
     fontSize: theme.typography.sizes.sm + 1,
     fontWeight: '600',
     color: theme.colors.textSecondary,

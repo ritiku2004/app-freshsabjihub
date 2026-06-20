@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     left: moderateScale(44), // Matches AppInput padding and icon width
-    right: 0,
+    right: moderateScale(48),
     top: 0,
     bottom: 0,
     justifyContent: 'flex-start',

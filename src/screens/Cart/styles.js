@@ -404,7 +404,6 @@ export default StyleSheet.create({
     shadowRadius: 16,
     elevation: 24,
     padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
   },
   addressSnippetRow: {
     flexDirection: 'row',

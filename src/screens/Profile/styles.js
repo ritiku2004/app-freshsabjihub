@@ -16,7 +16,7 @@ export default StyleSheet.create({
   },
   header: {
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: moderateScale(22),
+    paddingTop: moderateScale(10),
     paddingBottom: moderateScale(22),
     alignItems: 'center',
     borderBottomWidth: 1,

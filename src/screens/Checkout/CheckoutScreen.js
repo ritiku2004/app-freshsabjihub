@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useContext, useRef, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, Animated, TouchableOpacity, Image, Alert, ScrollView, Linking, ActivityIndicator, PanResponder } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -107,13 +107,36 @@ export const CheckoutScreen = ({ route, navigation }) => {
     ).start();
   }, [arrowScale, textShimmer]);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => !isProcessing && !swipeCompleted,
-      onMoveShouldSetPanResponder: () => !isProcessing && !swipeCompleted,
+  const isProcessingRef = useRef(isProcessing);
+  const swipeCompletedRef = useRef(swipeCompleted);
+  const containerWidthRef = useRef(containerWidth);
+
+  useEffect(() => {
+    isProcessingRef.current = isProcessing;
+  }, [isProcessing]);
+
+  useEffect(() => {
+    swipeCompletedRef.current = swipeCompleted;
+  }, [swipeCompleted]);
+
+  useEffect(() => {
+    containerWidthRef.current = containerWidth;
+  }, [containerWidth]);
+
+  const panResponder = useMemo(
+    () => PanResponder.create({
+      onStartShouldSetPanResponder: () => !isProcessingRef.current && !swipeCompletedRef.current,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        if (isProcessingRef.current || swipeCompletedRef.current) return false;
+        // Only start responder if gesture is primarily horizontal and reaches a threshold
+        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 5;
+      },
+      onPanResponderGrant: () => {
+        // Prevent parent components from intercepting the gestures once we start dragging
+      },
       onPanResponderMove: (evt, gestureState) => {
-        if (isProcessing || swipeCompleted) return;
-        const maxSwipe = containerWidth - moderateScale(54); // 48 width + 6 margins
+        if (isProcessingRef.current || swipeCompletedRef.current) return;
+        const maxSwipe = containerWidthRef.current - moderateScale(54); // 48 width + 6 margins
         if (maxSwipe <= 0) return;
         
         let newX = gestureState.dx;
@@ -123,8 +146,8 @@ export const CheckoutScreen = ({ route, navigation }) => {
         swipeX.setValue(newX);
       },
       onPanResponderRelease: (evt, gestureState) => {
-        if (isProcessing || swipeCompleted) return;
-        const maxSwipe = containerWidth - moderateScale(54);
+        if (isProcessingRef.current || swipeCompletedRef.current) return;
+        const maxSwipe = containerWidthRef.current - moderateScale(54);
         if (maxSwipe <= 0) return;
 
         // If swiped more than 80%, trigger payment
@@ -147,8 +170,19 @@ export const CheckoutScreen = ({ route, navigation }) => {
           }).start();
         }
       },
-    })
-  ).current;
+      onPanResponderTerminate: () => {
+        // Reset back if gesture was terminated by system/parent
+        Animated.spring(swipeX, {
+          toValue: 0,
+          tension: 40,
+          friction: 7,
+          useNativeDriver: true,
+        }).start();
+      },
+      onPanResponderTerminationRequest: () => false, // Don't let other views take over our touch
+    }),
+    []
+  );
 
   // Reset swipe state when processing completes or re-triggers
   useEffect(() => {
@@ -535,7 +569,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
         >
           <View style={styles.headerLeft}>
             <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
@@ -653,7 +687,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
       </ScrollView>
 
       {/* Double-Decker Sticky Bottom Bar */}
-      <View style={[styles.stickyFooter, { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) }]}>
+      <View style={[styles.stickyFooter, { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) + moderateScale(14) }]}>
         {/* Top deck Address preview (Static) */}
         <View style={styles.addressSnippetRow}>
           <View style={styles.addressSnippetLeft}>

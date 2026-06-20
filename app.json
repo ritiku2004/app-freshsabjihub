@@ -5,11 +5,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "splash": {
-      "image": "./assets/custom_splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#22C55E"
+      "backgroundColor": "#064e3b"
     },
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Logo/logo.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
@@ -24,19 +22,15 @@
       }
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "package": "com.ritik2004.groceryapp"
+      "package": "com.ritik2004.groceryapp",
+      "googleServicesFile": "./google-services.json",
+      "navigationBar": {
+        "backgroundColor": "#000000",
+        "barStyle": "light-content"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "androidNavigationBar": {
-      "backgroundColor": "#000000"
     },
     "extra": {
       "eas": {
@@ -44,7 +38,13 @@
       }
     },
     "plugins": [
-      "./withUpiQueries"
+      "./withUpiQueries",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#064e3b"
+        }
+      ]
     ]
   }
 }

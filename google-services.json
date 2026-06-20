@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "945901560169",
+    "project_id": "freshsabjihub",
+    "storage_bucket": "freshsabjihub.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:945901560169:android:49341fe6815daf6c551df8",
+        "android_client_info": {
+          "package_name": "com.ritik2004.groceryapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfDel7uzGpwqk_wGmYT1qmL07yCTMIAQI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -5,7 +5,6 @@ import { AuthContext } from '../../context/AuthContext';
 import { AppButton } from '../../components/AppButton';
 import styles from './styles';
 
-import { Rocket, ShieldCheck, Tag } from 'lucide-react-native';
 import { theme } from '../../theme';
 
 const slides = [
@@ -13,19 +12,19 @@ const slides = [
     id: 's1',
     title: 'Superfast Delivery',
     description: 'Get your fresh groceries delivered to your doorstep quickly and securely.',
-    icon: Rocket,
+    image: require('../../../assets/onboarding_delivery.jpg'),
   },
   {
     id: 's2',
     title: 'Freshness Guaranteed',
     description: 'Directly sourced from local farms to maintain the highest quality and freshness.',
-    icon: ShieldCheck,
+    image: require('../../../assets/onboarding_freshness.jpg'),
   },
   {
     id: 's3',
     title: 'Daily Offers & Discounts',
     description: 'Enjoy premium discounts, promo codes, and special packages every day.',
-    icon: Tag,
+    image: require('../../../assets/onboarding_offers.jpg'),
   },
 ];
 
@@ -114,7 +113,6 @@ export const OnboardingScreen = ({ navigation }) => {
   });
 
   const renderSlide = ({ item, index }) => {
-    const IconComponent = item.icon;
     const inputRange = [
       (index - 1) * width,
       index * width,
@@ -185,7 +183,11 @@ export const OnboardingScreen = ({ navigation }) => {
             elevation: 10,
             transform: [{ scale: iconScale }, { rotate: iconRotation }],
           }}>
-            <IconComponent size={96} color={theme.colors.primary} />
+            <Image 
+              source={item.image} 
+              style={{ width: 170, height: 170, borderRadius: 85 }} 
+              resizeMode="contain" 
+            />
           </Animated.View>
         </View>
 
