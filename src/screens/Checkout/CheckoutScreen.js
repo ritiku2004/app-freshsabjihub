@@ -69,6 +69,44 @@ export const CheckoutScreen = ({ route, navigation }) => {
   const swipeX = useRef(new Animated.Value(0)).current;
   const [swipeCompleted, setSwipeCompleted] = useState(false);
 
+  // Continuous Swipe Button Animations (Pulsing Arrow, Shimmering Text)
+  const arrowScale = useRef(new Animated.Value(1)).current;
+  const textShimmer = useRef(new Animated.Value(0.4)).current;
+
+  useEffect(() => {
+    // Pulse arrow inside thumb
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(arrowScale, {
+          toValue: 1.25,
+          duration: 750,
+          useNativeDriver: true,
+        }),
+        Animated.timing(arrowScale, {
+          toValue: 1,
+          duration: 750,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Shimmer label text opacity
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(textShimmer, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(textShimmer, {
+          toValue: 0.35,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [arrowScale, textShimmer]);
+
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => !isProcessing && !swipeCompleted,
@@ -646,20 +684,23 @@ export const CheckoutScreen = ({ route, navigation }) => {
             }}
             onLayout={(e) => {
               containerWidthRef.current = e.nativeEvent.layout.width;
-            }}
-          >
-            {/* Sturdy Background Green Progress track */}
+                    {/* Sturdy Background Green Progress track */}
             <Animated.View 
               style={{
                 position: 'absolute',
                 left: 0,
                 top: 0,
                 bottom: 0,
-                backgroundColor: theme.colors.success,
-                borderRadius: moderateScale(26),
                 width: Animated.add(swipeX, moderateScale(46)),
               }}
-            />
+            >
+              <LinearGradient
+                colors={['#10b981', '#059669', '#047857']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{ flex: 1, borderRadius: moderateScale(26) }}
+              />
+            </Animated.View>
             
             {/* Sliding text helper */}
             <Animated.Text
@@ -674,16 +715,19 @@ export const CheckoutScreen = ({ route, navigation }) => {
                 fontWeight: '800',
                 fontSize: rf(12),
                 letterSpacing: 0.5,
-                opacity: swipeX.interpolate({
-                  inputRange: [0, 80],
-                  outputRange: [1, 0],
-                  extrapolate: 'clamp',
-                }),
+                opacity: Animated.multiply(
+                  swipeX.interpolate({
+                    inputRange: [0, 80],
+                    outputRange: [1, 0],
+                    extrapolate: 'clamp',
+                  }),
+                  textShimmer
+                ),
               }}
             >
               Swipe to Pay ➔
             </Animated.Text>
-
+ 
             {/* Drag Handle Thumb */}
             <Animated.View
               {...panResponder.panHandlers}
@@ -705,7 +749,9 @@ export const CheckoutScreen = ({ route, navigation }) => {
               {isProcessing ? (
                 <ActivityIndicator size="small" color={theme.colors.success} />
               ) : (
-                <Text style={{ fontSize: rf(16), color: theme.colors.success, fontWeight: '900' }}>➔</Text>
+                <Animated.View style={{ transform: [{ scale: arrowScale }] }}>
+                  <Text style={{ fontSize: rf(16), color: theme.colors.success, fontWeight: '900' }}>➔</Text>
+                </Animated.View>
               )}
             </Animated.View>
           </View>
