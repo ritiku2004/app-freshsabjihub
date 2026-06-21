@@ -78,7 +78,7 @@ export const ContactScreen = ({ navigation }) => {
         colors={[theme.colors.primary, theme.colors.secondary]} 
         start={{ x: 0, y: 0 }} 
         end={{ x: 1, y: 0 }} 
-        style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
+        style={[styles.header, { paddingTop: moderateScale(12) }]}
       >
         <TouchableOpacity 
           onPress={() => navigation.goBack()} 
@@ -284,8 +284,8 @@ const styles = StyleSheet.create({
   },
   header: { 
     paddingHorizontal: theme.spacing.lg, 
-    paddingTop: moderateScale(10), 
-    paddingBottom: moderateScale(22), 
+    paddingTop: moderateScale(12), 
+    paddingBottom: moderateScale(12), 
     flexDirection: 'row', 
     alignItems: 'center' 
   },

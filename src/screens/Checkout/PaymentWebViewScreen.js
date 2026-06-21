@@ -279,6 +279,7 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
   const [isLoadingWebview, setIsLoadingWebview] = useState(true);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+  const isExitingRef = React.useRef(false);
 
   const handleNavigationStateChange = (navState) => {
     const { url } = navState;
@@ -465,6 +466,10 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (isExitingRef.current) {
+        return;
+      }
+
       if (isVerifying) {
         e.preventDefault();
         return;
@@ -565,129 +570,145 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
   `;
 
   return (
-    <View style={[styles.container, { backgroundColor: '#15803d' }]}>
-      {/* WebView Wrapper */}
-      <View style={[styles.webViewWrapper, { paddingBottom: insets.bottom }]}>
-        {!isVerifying ? (
-          <>
-            <WebView
-              source={{ html: htmlContent }}
-              style={styles.webView}
-              onMessage={onMessage}
-              onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-              onNavigationStateChange={handleNavigationStateChange}
-              onLoadEnd={() => setIsLoadingWebview(false)}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              originWhitelist={['*']}
-              mixedContentMode="always"
-              allowFileAccess={true}
-              injectedJavaScript={injectedJavaScript}
-            />
-            {isLoadingWebview && (
-              <View style={[StyleSheet.absoluteFill, styles.verifyingContainer, { backgroundColor: '#ffffff' }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-                <Text style={styles.verifyingText}>
-                  Opening {paymentMethod === 'gpay' ? 'Google Pay' : paymentMethod === 'phonepe' ? 'PhonePe' : paymentMethod === 'paytm' ? 'Paytm' : 'your UPI app'}...
-                </Text>
-                <Text style={styles.verifyingWarning}>Please do not close the app or tap back</Text>
-              </View>
-            )}
-          </>
-        ) : (
-          <View style={styles.verifyingContainer}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={styles.verifyingText}>Verifying signature and confirming order...</Text>
-            <Text style={styles.verifyingWarning}>Please do not close the app or tap back</Text>
-          </View>
-        )}
-      </View>
+    <Modal
+      visible={true}
+      animationType="none"
+      statusBarTranslucent={true}
+      onRequestClose={() => {
+        if (!isVerifying) {
+          setShowCancelModal(true);
+        }
+      }}
+    >
+      <View style={[styles.container, { backgroundColor: '#ffffff' }]}>
+        {/* Top Status Bar Cap */}
+        <View style={{ height: insets.top + 12, backgroundColor: theme.colors.primary }} />
+        {/* WebView Wrapper */}
+        <View style={[styles.webViewWrapper, { paddingBottom: insets.bottom }]}>
+          {!isVerifying ? (
+            <>
+              <WebView
+                source={{ html: htmlContent }}
+                style={styles.webView}
+                onMessage={onMessage}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+                onNavigationStateChange={handleNavigationStateChange}
+                onLoadEnd={() => setIsLoadingWebview(false)}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                originWhitelist={['*']}
+                mixedContentMode="always"
+                allowFileAccess={true}
+                injectedJavaScript={injectedJavaScript}
+              />
+              {isLoadingWebview && (
+                <View style={[StyleSheet.absoluteFill, styles.verifyingContainer, { backgroundColor: '#ffffff' }]}>
+                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                  <Text style={styles.verifyingText}>
+                    Opening {paymentMethod === 'gpay' ? 'Google Pay' : paymentMethod === 'phonepe' ? 'PhonePe' : paymentMethod === 'paytm' ? 'Paytm' : 'your UPI app'}...
+                  </Text>
+                  <Text style={styles.verifyingWarning}>Please do not close the app or tap back</Text>
+                </View>
+              )}
+            </>
+          ) : (
+            <View style={styles.verifyingContainer}>
+              <ActivityIndicator size="large" color={theme.colors.primary} />
+              <Text style={styles.verifyingText}>Verifying signature and confirming order...</Text>
+              <Text style={styles.verifyingWarning}>Please do not close the app or tap back</Text>
+            </View>
+          )}
+        </View>
 
-      {/* Premium Custom Cancel Modal */}
-      <Modal
-        visible={showCancelModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowCancelModal(false)}
-      >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: 24
-        }}>
+        {/* Premium Custom Cancel Modal */}
+        <Modal
+          visible={showCancelModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowCancelModal(false)}
+        >
           <View style={{
-            backgroundColor: '#ffffff',
-            borderRadius: 16,
-            padding: 24,
-            width: '100%',
-            maxWidth: 320,
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            justifyContent: 'center',
             alignItems: 'center',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 10,
-            elevation: 10
+            padding: 24
           }}>
-            <Text style={{ fontSize: 24, marginBottom: 12 }}>⚠️</Text>
-            <Text style={{
-              fontSize: 18,
-              fontWeight: '800',
-              color: '#1e293b',
-              marginBottom: 10,
-              textAlign: 'center'
+            <View style={{
+              backgroundColor: '#ffffff',
+              borderRadius: 16,
+              padding: 24,
+              width: '100%',
+              maxWidth: 320,
+              alignItems: 'center',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 10,
+              elevation: 10
             }}>
-              Cancel Payment?
-            </Text>
-            <Text style={{
-              fontSize: 13,
-              color: '#64748b',
-              textAlign: 'center',
-              lineHeight: 18,
-              marginBottom: 24
-            }}>
-              Are you sure you want to cancel the payment? Your order will not be completed and your cart will remain active.
-            </Text>
-            
-            <View style={{ flexDirection: 'row', width: '100%', gap: 12 }}>
-              <TouchableOpacity
-                onPress={() => {
-                  setShowCancelModal(false);
-                  setPendingAction(null);
-                }}
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 10,
-                  backgroundColor: '#f1f5f9',
-                  alignItems: 'center'
-                }}
-              >
-                <Text style={{ color: '#475569', fontWeight: '700', fontSize: 14 }}>Keep Paying</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setShowCancelModal(false);
-                  if (pendingAction) {
-                    navigation.dispatch(pendingAction);
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 10,
-                  backgroundColor: '#ef4444',
-                  alignItems: 'center'
-                }}
-              >
-                <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 14 }}>Exit</Text>
-              </TouchableOpacity>
+              <Text style={{ fontSize: 24, marginBottom: 12 }}>⚠️</Text>
+              <Text style={{
+                fontSize: 18,
+                fontWeight: '800',
+                color: '#1e293b',
+                marginBottom: 10,
+                textAlign: 'center'
+              }}>
+                Cancel Payment?
+              </Text>
+              <Text style={{
+                fontSize: 13,
+                color: '#64748b',
+                textAlign: 'center',
+                lineHeight: 18,
+                marginBottom: 24
+              }}>
+                Are you sure you want to cancel the payment? Your order will not be completed and your cart will remain active.
+              </Text>
+              
+              <View style={{ flexDirection: 'row', width: '100%', gap: 12 }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowCancelModal(false);
+                    setPendingAction(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 12,
+                    borderRadius: 10,
+                    backgroundColor: '#f1f5f9',
+                    alignItems: 'center'
+                  }}
+                >
+                  <Text style={{ color: '#475569', fontWeight: '700', fontSize: 14 }}>Keep Paying</Text>
+                </TouchableOpacity>
+                 <TouchableOpacity
+                  onPress={() => {
+                    isExitingRef.current = true;
+                    setShowCancelModal(false);
+                    if (pendingAction) {
+                      navigation.dispatch(pendingAction);
+                    } else {
+                      navigation.goBack();
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 12,
+                    borderRadius: 10,
+                    backgroundColor: '#ef4444',
+                    alignItems: 'center'
+                  }}
+                >
+                  <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 14 }}>Exit</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </Modal>
   );
 };
 

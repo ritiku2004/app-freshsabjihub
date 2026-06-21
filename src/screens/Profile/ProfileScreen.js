@@ -272,7 +272,7 @@ export const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} locations={[0, 0.55, 1]} style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}>
+      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} locations={[0, 0.55, 1]} style={[styles.header, { paddingTop: moderateScale(12) }]}>
         <Text style={styles.headerTitle}>My Profile</Text>
       </LinearGradient>
 

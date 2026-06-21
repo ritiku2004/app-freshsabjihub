@@ -230,7 +230,7 @@ export const SearchScreen = ({ route, navigation }) => {
       {/* Header with address and search bar */}
       <LinearGradient
         colors={[theme.colors.primary, theme.colors.primary]}
-        style={{ paddingTop: insets.top + moderateScale(10), paddingHorizontal: theme.spacing.lg, paddingBottom: moderateScale(16) }}
+        style={{ paddingTop: moderateScale(12), paddingHorizontal: theme.spacing.lg, paddingBottom: moderateScale(12) }}
       >
         {/* Address Row */}
         <View style={styles.addressRow}>
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.md,
-    paddingBottom: theme.spacing.md,
+    paddingBottom: moderateScale(12),
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },

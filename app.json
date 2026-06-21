@@ -6,6 +6,11 @@
     "orientation": "portrait",
     "icon": "./assets/Logo/logo.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/Logo/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#15803D"
+    },
     "ios": {
       "supportsTablet": true,
       "infoPlist": {

@@ -129,7 +129,7 @@ export const CartScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
+          style={[styles.header, { paddingTop: moderateScale(12) }]}
         >
           <Text style={styles.headerTitle}>Shopping Cart</Text>
         </LinearGradient>
@@ -149,7 +149,7 @@ export const CartScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
+          style={[styles.header, { paddingTop: moderateScale(12) }]}
         >
           <Text style={styles.headerTitle}>Shopping Cart</Text>
         </LinearGradient>
@@ -166,7 +166,7 @@ export const CartScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
+          style={[styles.header, { paddingTop: moderateScale(12) }]}
         >
           <Text style={styles.headerTitle}>Shopping Cart</Text>
         </LinearGradient>
@@ -252,7 +252,7 @@ export const CartScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} locations={[0, 0.55, 1]} style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}>
+      <LinearGradient colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} locations={[0, 0.55, 1]} style={[styles.header, { paddingTop: moderateScale(12) }]}>
         <Text style={styles.headerTitle}>Shopping Cart ({cartItems.length} items)</Text>
       </LinearGradient>
 

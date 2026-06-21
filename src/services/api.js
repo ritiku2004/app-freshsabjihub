@@ -138,7 +138,7 @@ export const api = {
     }
   },
 
-  // Fetch nearest shop by latitude and longitude (20km radius check handled by backend)
+  // Fetch nearest shop by latitude and longitude (15km radius check handled by backend)
   getNearestShop: async (latitude, longitude) => {
     try {
       const response = await fetch(`${API_BASE_URL}/user/catalog/nearest-shop?latitude=${latitude}&longitude=${longitude}`);

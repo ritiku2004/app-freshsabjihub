@@ -53,7 +53,7 @@ export const CategoriesScreen = ({ navigation }) => {
       <LinearGradient 
         colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]} 
         locations={[0, 0.55, 1]} 
-        style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
+        style={[styles.header, { paddingTop: moderateScale(12) }]}
       >
         <Text style={styles.headerTitle}>All Categories</Text>
       </LinearGradient>

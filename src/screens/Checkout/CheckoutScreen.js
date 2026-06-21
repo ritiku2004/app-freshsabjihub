@@ -569,7 +569,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
+          style={[styles.header, { paddingTop: moderateScale(12) }]}
         >
           <View style={styles.headerLeft}>
             <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
@@ -595,7 +595,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
       <LinearGradient
         colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
         locations={[0, 0.55, 1]}
-        style={[styles.header, { paddingTop: Math.max(insets.top, moderateScale(22)) }]}
+        style={[styles.header, { paddingTop: moderateScale(12) }]}
       >
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>

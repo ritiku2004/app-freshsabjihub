@@ -75,7 +75,7 @@ export const AddressManagementScreen = ({ navigation }) => {
       setEditingAddressId(existing.id);
 
       if (isMapReady && webviewRef.current && existing.latitude && existing.longitude) {
-         webviewRef.current.injectJavaScript(`window.setCenter(${existing.latitude}, ${existing.longitude}, 17); true;`);
+         webviewRef.current.injectJavaScript(`window.setCenter(${existing.latitude}, ${existing.longitude}, 13); true;`);
       }
     } else {
       setReceiverName('');
@@ -124,7 +124,7 @@ export const AddressManagementScreen = ({ navigation }) => {
         });
 
         window.setCenter = function(lat, lng, zoomLevel) {
-          map.setView([lat, lng], zoomLevel || 17);
+          map.setView([lat, lng], zoomLevel || 13);
           marker.setLatLng([lat, lng]);
         };
       </script>
@@ -137,7 +137,7 @@ export const AddressManagementScreen = ({ navigation }) => {
     const existing = addresses.find(addr => addr.type === addressType);
     if (existing && existing.latitude && existing.longitude) {
       if (webviewRef.current) {
-        webviewRef.current.injectJavaScript(`window.setCenter(${existing.latitude}, ${existing.longitude}, 17); true;`);
+        webviewRef.current.injectJavaScript(`window.setCenter(${existing.latitude}, ${existing.longitude}, 13); true;`);
       }
     } else {
       // New address: fetch approximate location by IP
@@ -169,7 +169,7 @@ export const AddressManagementScreen = ({ navigation }) => {
             setLatitude(best.latitude);
             setLongitude(best.longitude);
             if (webviewRef.current) {
-              webviewRef.current.injectJavaScript(`window.setCenter(${best.latitude}, ${best.longitude}, 16); true;`);
+              webviewRef.current.injectJavaScript(`window.setCenter(${best.latitude}, ${best.longitude}, 12); true;`);
             }
           }
         } catch(e) {
@@ -260,7 +260,7 @@ export const AddressManagementScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
+          style={[styles.header, { paddingTop: moderateScale(12) }]}
         >
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <ArrowLeft size={24} color={theme.colors.white} />
@@ -281,7 +281,7 @@ export const AddressManagementScreen = ({ navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}
+          style={[styles.header, { paddingTop: moderateScale(12) }]}
         >
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7} disabled={isProcessing}>
             <ArrowLeft size={24} color={theme.colors.white} />
@@ -476,7 +476,7 @@ export const AddressManagementScreen = ({ navigation }) => {
                   setLongitude(lon);
                   
                   if (webviewRef.current) {
-                    webviewRef.current.injectJavaScript(`window.setCenter(${lat}, ${lon}, 17); true;`);
+                    webviewRef.current.injectJavaScript(`window.setCenter(${lat}, ${lon}, 13); true;`);
                   }
 
                   const geocode = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
