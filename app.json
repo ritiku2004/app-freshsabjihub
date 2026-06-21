@@ -34,11 +34,14 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      "./withUpiQueries"
+    ],
     "extra": {
       "eas": {
-        "projectId": "8cea7043-aed6-4b13-8391-3ebfbddcf0f4"
+        "projectId": "70b28603-d9eb-4f2c-9eb4-49e3871a0d06"
       }
     },
-    "plugins": ["./withUpiQueries"]
+    "owner": "helloworld15"
   }
 }
