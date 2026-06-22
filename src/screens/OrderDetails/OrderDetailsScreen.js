@@ -45,6 +45,7 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
             handlingFee: Number(o.handling_fee),
             tipAmount: Number(o.tip_amount),
             discountAmount: Number(o.discount_amount),
+            paymentMethod: o.payment_method,
             address: o.address_line1 ? {
               flatNo,
               addressLine,
@@ -153,8 +154,8 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
 
   // Calculations for billing details
   const itemsTotal = order.items.reduce((acc, item) => acc + (item.discountPrice || item.price) * item.quantity, 0);
-  const deliveryFee = order.delivery_fee !== undefined ? Number(order.delivery_fee) : (order.totalAmount > 300 ? 0 : 15);
-  const handlingFee = order.handling_fee !== undefined ? Number(order.handling_fee) : 5;
+  const deliveryFee = order.deliveryFee !== undefined ? Number(order.deliveryFee) : 0;
+  const handlingFee = order.handlingFee !== undefined ? Number(order.handlingFee) : 0;
   const tipAmount = order.tipAmount || 0;
   const discountAmount = order.discountAmount || 0;
 
@@ -274,7 +275,9 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
 
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Payment Method</Text>
-            <Text style={styles.detailValue}>{order.paymentMethod || 'Google Pay UPI'}</Text>
+            <Text style={styles.detailValue}>
+              {order.paymentMethod === 'COD' ? 'Cash on Delivery' : (order.paymentMethod || 'Online Payment')}
+            </Text>
           </View>
 
           <View style={styles.detailRow}>

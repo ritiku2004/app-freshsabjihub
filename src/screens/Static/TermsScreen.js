@@ -39,14 +39,14 @@ export const TermsScreen = ({ navigation }) => {
           <View style={styles.summaryContent}>
             <Text style={styles.summaryTitle}>Terms of Service Summary</Text>
             <Text style={styles.summaryText}>
-              By using FreshCart, you agree to our service terms. Below are the key terms regarding your account, orders, delivery, and refunds.
+              By using Fresh Sabji Hub, you agree to our service terms. Below are the key terms regarding your account, orders, delivery, and refunds.
             </Text>
           </View>
         </View>
 
         {/* Effective Date */}
         <View style={styles.introContainer}>
-          <Text style={styles.heading}>FreshCart Terms of Service</Text>
+          <Text style={styles.heading}>Fresh Sabji Hub Terms of Service</Text>
           <Text style={styles.date}>Effective Date: June 2026</Text>
         </View>
 
@@ -60,7 +60,7 @@ export const TermsScreen = ({ navigation }) => {
               <Text style={styles.cardTitle}>1. Acceptance of Terms</Text>
             </View>
             <Text style={styles.cardBody}>
-              By downloading, accessing, or using the FreshCart application ("App"), you agree to be bound by these Terms of Service. If you disagree with any part of these terms, you may not access or use our services.
+              By downloading, accessing, or using the Fresh Sabji Hub application ("App"), you agree to be bound by these Terms of Service. If you disagree with any part of these terms, you may not access or use our services.
             </Text>
           </View>
 
@@ -93,7 +93,7 @@ export const TermsScreen = ({ navigation }) => {
               <Text style={styles.cardTitle}>4. Orders, Pricing & Delivery</Text>
             </View>
             <Text style={styles.cardBody}>
-              All product prices are subject to change without notice. Delivery timelines are estimates, and while we strive to meet them, FreshCart is not liable for minor delays outside our control (e.g. extreme weather or transit conditions).
+              All product prices are subject to change without notice. Delivery timelines are estimates, and while we strive to meet them, Fresh Sabji Hub is not liable for minor delays outside our control (e.g. extreme weather or transit conditions).
             </Text>
           </View>
 
@@ -115,7 +115,7 @@ export const TermsScreen = ({ navigation }) => {
               <Text style={styles.cardTitle}>6. Intellectual Property</Text>
             </View>
             <Text style={styles.cardBody}>
-              The App and its original content, features, and brand design are the exclusive property of FreshCart and its licensors. Any reuse or duplication of assets is strictly prohibited without prior written consent.
+              The App and its original content, features, and brand design are the exclusive property of Fresh Sabji Hub and its licensors. Any reuse or duplication of assets is strictly prohibited without prior written consent.
             </Text>
           </View>
 
@@ -126,7 +126,7 @@ export const TermsScreen = ({ navigation }) => {
               <Text style={styles.cardTitle}>7. Limitation of Liability</Text>
             </View>
             <Text style={styles.cardBody}>
-              In no event shall FreshCart, its directors, partners, or employees be liable for any indirect, incidental, or special damages resulting from your use of the App or inability to access the service.
+              In no event shall Fresh Sabji Hub, its directors, partners, or employees be liable for any indirect, incidental, or special damages resulting from your use of the App or inability to access the service.
             </Text>
           </View>
 

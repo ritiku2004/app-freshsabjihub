@@ -25,6 +25,7 @@ export const CartScreen = ({ navigation }) => {
     cartSavings,
     deliveryFee,
     handlingFee,
+    taxAmount,
     cartGrandTotal,
     freeDeliveryThreshold,
     freeHandlingThreshold,

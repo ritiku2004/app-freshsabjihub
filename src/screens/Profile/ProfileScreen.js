@@ -51,7 +51,7 @@ const resolveAvatarUrl = (url) => {
   return null;
 };
 
-const ABOUT_CONTENT = `FreshCart is a modern grocery delivery platform designed to bring fresh vegetables, daily utilities, pantry goods, snacks, and sweet desserts to your doorstep quickly.
+const ABOUT_CONTENT = `Fresh Sabji Hub is a modern grocery delivery platform designed to bring fresh vegetables, daily utilities, pantry goods, snacks, and sweet desserts to your doorstep quickly.
 
 Founded with a vision to streamline household supplies, we coordinate with local farmers and micro-warehouses to maintain premium quality checks and cold chain logistics. Thank you for choosing us!`;
 
@@ -63,15 +63,15 @@ const CONTACT_CONTENT = `Need help with an active order or have feedback for our
 
 We aim to resolve all email inquiries within 2 hours.`;
 
-const PRIVACY_CONTENT = `At FreshCart, we prioritize your personal privacy. We collect basic details such as your phone number, name, and delivery addresses to fulfill orders and process transactions.
+const PRIVACY_CONTENT = `At Fresh Sabji Hub, we prioritize your personal privacy. We collect basic details such as your phone number, name, and delivery addresses to fulfill orders and process transactions.
 
-We encrypt transaction data via Secure Sockets Layer (SSL) and utilize AsyncStorage for secure offline session configurations. We do not sell your personal data to third parties. For complete terms, visit freshcart.com/privacy.`;
+We encrypt transaction data via Secure Sockets Layer (SSL) and utilize AsyncStorage for secure offline session configurations. We do not sell your personal data to third parties. For complete terms, visit freshsabjihub.com/privacy.`;
 
-const TERMS_CONTENT = `By accessing and placing orders on FreshCart, you agree to comply with our delivery parameters:
+const TERMS_CONTENT = `By accessing and placing orders on Fresh Sabji Hub, you agree to comply with our delivery parameters:
 
 1. Delivery Slot Targets: While we aim for quick delivery, ETA estimates may fluctuate during heavy rain or festival hours.
 2. Order Cancellation: Orders cannot be cancelled once they transition to the "Out for Delivery" status.
-3. Pricing & Taxes: Bill summaries incorporate local GST taxes, delivery partner tipping allowances, and flat packaging fees.`;
+3. Pricing & Taxes: Bill summaries incorporate delivery partner tipping allowances and flat packaging fees.`;
 
 const PRESET_AVATARS = [
   { emoji: '🍅', color: '#FEE2E2', label: 'Tomato' },
@@ -124,7 +124,7 @@ export const ProfileScreen = ({ navigation }) => {
   const handleShareApp = async () => {
     try {
       await Share.share({
-        message: 'Download FreshCart now! Get fresh groceries delivered to your home quickly. PlayStore link: https://play.google.com/store/apps/freshcart',
+        message: 'Download Fresh Sabji Hub now! Get fresh groceries delivered to your home quickly. PlayStore link: https://play.google.com/store/apps/freshsabjihub',
       });
     } catch (e) {
       console.error(e);

@@ -48,10 +48,10 @@ export const AddressManagementScreen = ({ navigation }) => {
   const [addressType, setAddressType] = useState('Home'); // 'Home' | 'Office' | 'Other'
   const [receiverName, setReceiverName] = useState('');
   const [receiverMobile, setReceiverMobile] = useState('');
+  const [cityName, setCityName] = useState('');
+  const [area, setArea] = useState('');
   const [flatNo, setFlatNo] = useState('');
-  const [addressLine, setAddressLine] = useState('');
   const [landmark, setLandmark] = useState('');
-  const [zipcode, setZipcode] = useState('');
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
   const webviewRef = React.useRef(null);
@@ -66,10 +66,10 @@ export const AddressManagementScreen = ({ navigation }) => {
     if (existing) {
       setReceiverName(existing.receiverName || '');
       setReceiverMobile(existing.receiverMobile || '');
+      setCityName(existing.city || '');
+      setArea(existing.addressLine || '');
       setFlatNo(existing.flatNo || '');
-      setAddressLine(existing.addressLine || '');
       setLandmark(existing.landmark || '');
-      setZipcode(existing.zipcode || '');
       setLatitude(existing.latitude || null);
       setLongitude(existing.longitude || null);
       setEditingAddressId(existing.id);
@@ -80,10 +80,10 @@ export const AddressManagementScreen = ({ navigation }) => {
     } else {
       setReceiverName('');
       setReceiverMobile('');
+      setCityName('');
+      setArea('');
       setFlatNo('');
-      setAddressLine('');
       setLandmark('');
-      setZipcode('');
       setLatitude(null);
       setLongitude(null);
       setEditingAddressId(null);
@@ -156,35 +156,56 @@ export const AddressManagementScreen = ({ navigation }) => {
     }
   };
 
+  // Automatically point map to the city when user enters city name
   useEffect(() => {
-    if (!isTyping.current) return;
+    if (!cityName.trim()) return;
     
     const timeoutId = setTimeout(async () => {
-      const fullAddress = `${addressLine} ${landmark} ${zipcode}`.trim();
-      if (fullAddress.length > 8) {
-        try {
-          const results = await Location.geocodeAsync(fullAddress);
-          if (results && results.length > 0) {
-            const best = results[0];
-            setLatitude(best.latitude);
-            setLongitude(best.longitude);
-            if (webviewRef.current) {
-              webviewRef.current.injectJavaScript(`window.setCenter(${best.latitude}, ${best.longitude}, 12); true;`);
-            }
+      try {
+        const results = await Location.geocodeAsync(cityName.trim());
+        if (results && results.length > 0) {
+          const best = results[0];
+          setLatitude(best.latitude);
+          setLongitude(best.longitude);
+          if (webviewRef.current) {
+            webviewRef.current.injectJavaScript(`window.setCenter(${best.latitude}, ${best.longitude}, 12); true;`);
           }
-        } catch(e) {
-          console.log('Geocoding failed:', e);
         }
+      } catch(e) {
+        console.log('City geocoding failed:', e);
       }
-      isTyping.current = false;
-    }, 1500);
+    }, 1200);
 
     return () => clearTimeout(timeoutId);
-  }, [addressLine, landmark, zipcode]);
+  }, [cityName]);
+
+  // Refined search when user enters area/colony/sector
+  useEffect(() => {
+    if (!area.trim() || !cityName.trim()) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const query = `${area.trim()}, ${cityName.trim()}`;
+        const results = await Location.geocodeAsync(query);
+        if (results && results.length > 0) {
+          const best = results[0];
+          setLatitude(best.latitude);
+          setLongitude(best.longitude);
+          if (webviewRef.current) {
+            webviewRef.current.injectJavaScript(`window.setCenter(${best.latitude}, ${best.longitude}, 14); true;`);
+          }
+        }
+      } catch(e) {
+        console.log('Area geocoding failed, staying on city:', e);
+      }
+    }, 1200);
+
+    return () => clearTimeout(timeoutId);
+  }, [area]);
 
   const handleSave = async () => {
-    if (!receiverName.trim() || !receiverMobile.trim() || !flatNo.trim() || !addressLine.trim() || !landmark.trim() || !zipcode.trim()) {
-      Alert.alert('Fields Required', 'Please fill in all form fields, including Zip Code.');
+    if (!receiverName.trim() || !receiverMobile.trim() || !cityName.trim() || !area.trim() || !flatNo.trim()) {
+      Alert.alert('Fields Required', 'Please fill in all required fields.');
       return;
     }
 
@@ -198,11 +219,6 @@ export const AddressManagementScreen = ({ navigation }) => {
       return;
     }
 
-    if (zipcode.trim().length < 5) {
-      Alert.alert('Invalid Zip Code', 'Please enter a valid Zip Code.');
-      return;
-    }
-
     setIsProcessing(true);
 
     const payload = {
@@ -210,10 +226,10 @@ export const AddressManagementScreen = ({ navigation }) => {
       type: addressType,
       receiverName: receiverName.trim(),
       receiverMobile: receiverMobile.trim(),
+      city: cityName.trim(),
       flatNo: flatNo.trim(),
-      addressLine: addressLine.trim(),
+      addressLine: area.trim(),
       landmark: landmark.trim(),
-      zipcode: zipcode.trim(),
       latitude,
       longitude,
     };
@@ -227,10 +243,10 @@ export const AddressManagementScreen = ({ navigation }) => {
     // Clear form
     setReceiverName('');
     setReceiverMobile('');
+    setCityName('');
+    setArea('');
     setFlatNo('');
-    setAddressLine('');
     setLandmark('');
-    setZipcode('');
     setLatitude(null);
     setLongitude(null);
     
@@ -252,7 +268,7 @@ export const AddressManagementScreen = ({ navigation }) => {
     }
   };
 
-  const isFormValid = receiverName.trim() && receiverMobile.trim().length >= 10 && flatNo.trim() && addressLine.trim() && landmark.trim() && zipcode.trim().length >= 5 && latitude && longitude;
+  const isFormValid = receiverName.trim() && receiverMobile.trim().length >= 10 && cityName.trim() && area.trim() && flatNo.trim() && latitude && longitude;
 
   if (isLoading) {
     return (
@@ -334,7 +350,7 @@ export const AddressManagementScreen = ({ navigation }) => {
                         </Text>
                       )}
                       <Text style={styles.addressLine} numberOfLines={2}>
-                        {item.flatNo}, {item.addressLine}. Landmark: {item.landmark}. Zip: {item.zipcode || 'N/A'}
+                        {item.flatNo}, {item.addressLine}. Landmark: {item.landmark}. City: {item.city || 'N/A'}
                       </Text>
                     </View>
                   </View>
@@ -407,16 +423,23 @@ export const AddressManagementScreen = ({ navigation }) => {
           />
  
           <AppInput
-            value={flatNo}
-            onChangeText={setFlatNo}
-            placeholder="Flat / House No. / Floor / Building"
+            value={cityName}
+            onChangeText={(txt) => { isTyping.current = true; setCityName(txt); }}
+            placeholder="City Name"
             containerStyle={styles.input}
           />
  
           <AppInput
-            value={addressLine}
-            onChangeText={(txt) => { isTyping.current = true; setAddressLine(txt); }}
-            placeholder="Area / Sector / Street / Locality"
+            value={area}
+            onChangeText={(txt) => { isTyping.current = true; setArea(txt); }}
+            placeholder="Area / Colony / Sector"
+            containerStyle={styles.input}
+          />
+ 
+          <AppInput
+            value={flatNo}
+            onChangeText={setFlatNo}
+            placeholder="House No. / Building / Floor"
             containerStyle={styles.input}
           />
  
@@ -424,15 +447,6 @@ export const AddressManagementScreen = ({ navigation }) => {
             value={landmark}
             onChangeText={(txt) => { isTyping.current = true; setLandmark(txt); }}
             placeholder="Nearby Landmark (e.g. Near Mall)"
-            containerStyle={styles.input}
-          />
- 
-          <AppInput
-            value={zipcode}
-            onChangeText={(txt) => { isTyping.current = true; setZipcode(txt.replace(/[^0-9]/g, '')); }}
-            placeholder="Zip Code / Pincode"
-            keyboardType="numeric"
-            maxLength={6}
             containerStyle={styles.input}
           />
 
@@ -482,9 +496,9 @@ export const AddressManagementScreen = ({ navigation }) => {
                   const geocode = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
                   if (geocode && geocode.length > 0) {
                     const place = geocode[0];
-                    if (!addressLine) setAddressLine(place.street || place.name || '');
-                    if (!zipcode) setZipcode(place.postalCode || '');
-                    if (!landmark) setLandmark(place.subregion || place.city || '');
+                    if (!area) setArea(place.street || place.name || '');
+                    if (!cityName) setCityName(place.city || place.subregion || '');
+                    if (!landmark) setLandmark(place.district || '');
                   }
                 } catch (e) {
                   Alert.alert('Error', 'Failed to get current location.');

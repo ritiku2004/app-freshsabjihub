@@ -46,7 +46,7 @@ export const PrivacyScreen = ({ navigation }) => {
 
         {/* Effective Date */}
         <View style={styles.introContainer}>
-          <Text style={styles.heading}>FreshCart Privacy Policy</Text>
+          <Text style={styles.heading}>Fresh Sabji Hub Privacy Policy</Text>
           <Text style={styles.date}>Effective Date: June 2026</Text>
         </View>
 
@@ -60,7 +60,7 @@ export const PrivacyScreen = ({ navigation }) => {
               <Text style={styles.cardTitle}>1. Introduction</Text>
             </View>
             <Text style={styles.cardBody}>
-              Welcome to FreshCart ("we", "our", or "us"). We are committed to protecting your personal information and your right to privacy. This policy covers all information collected through our mobile application, and any related delivery, marketing, or customer services.
+              Welcome to Fresh Sabji Hub ("we", "our", or "us"). We are committed to protecting your personal information and your right to privacy. This policy covers all information collected through our mobile application, and any related delivery, marketing, or customer services.
             </Text>
           </View>
 

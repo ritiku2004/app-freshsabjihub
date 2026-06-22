@@ -30,7 +30,7 @@ import { moderateScale, rf } from '../../utils/responsive';
 
 export const CheckoutScreen = ({ route, navigation }) => {
   const { user, activeAddress, activeShop } = useContext(AuthContext);
-  const { cartItems, cartSubtotal, cartGrandTotal, deliveryFee, handlingFee, clearCart, fetchCart } = useContext(CartContext);
+  const { cartItems, cartSubtotal, cartGrandTotal, deliveryFee, handlingFee, taxAmount, clearCart, fetchCart } = useContext(CartContext);
   const insets = useSafeAreaInsets();
 
   const deliveryTip = route.params?.deliveryTip || 0;
@@ -57,8 +57,13 @@ export const CheckoutScreen = ({ route, navigation }) => {
     }, [fetchCart, route.params?.retryOrder])
   );
 
-  // States
-  const [selectedMethod] = useState('upi');
+  const [selectedMethod, setSelectedMethod] = useState('prepaid'); // 'prepaid' (Pay Now) or 'cod' (Cash on Delivery)
+  const selectedMethodRef = useRef(selectedMethod);
+  
+  useEffect(() => {
+    selectedMethodRef.current = selectedMethod;
+    console.log('[DEBUG] selectedMethod changed to:', selectedMethod);
+  }, [selectedMethod]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatusText, setPaymentStatusText] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
@@ -123,6 +128,11 @@ export const CheckoutScreen = ({ route, navigation }) => {
     containerWidthRef.current = containerWidth;
   }, [containerWidth]);
 
+  const handlePlaceOrderRef = useRef(handlePlaceOrder);
+  useEffect(() => {
+    handlePlaceOrderRef.current = handlePlaceOrder;
+  }, [handlePlaceOrder]);
+
   const panResponder = useMemo(
     () => PanResponder.create({
       onStartShouldSetPanResponder: () => !isProcessingRef.current && !swipeCompletedRef.current,
@@ -158,7 +168,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
             duration: 150,
             useNativeDriver: true,
           }).start(() => {
-            handlePlaceOrder();
+            handlePlaceOrderRef.current();
           });
         } else {
           // Spring back
@@ -222,7 +232,8 @@ export const CheckoutScreen = ({ route, navigation }) => {
   const displayAddress = isRetry ? retryOrder.address : activeAddress;
   const totalQuantity = displayItems.reduce((acc, item) => acc + item.quantity, 0);
   const donationAmount = 0;
-  const itemsTotal = isRetry ? (displayGrandTotal - displayDeliveryFee - displayHandlingFee - displayTip) : cartSubtotal;
+  const displayTax = isRetry ? (retryOrder.tax_amount || retryOrder.taxAmount || 0) : taxAmount;
+  const itemsTotal = isRetry ? (displayGrandTotal - displayDeliveryFee - displayHandlingFee - displayTip - displayTax) : cartSubtotal;
   const grandTotal = displayGrandTotal;
 
   const handlePlaceOrder = async () => {
@@ -270,6 +281,8 @@ export const CheckoutScreen = ({ route, navigation }) => {
         return;
       }
 
+      const payloadMethod = selectedMethodRef.current === 'prepaid' ? 'ONLINE' : 'COD';
+      console.log('[DEBUG] handlePlaceOrder: selectedMethodRef.current =', selectedMethodRef.current, 'payloadMethod =', payloadMethod);
       const orderPayload = {
         shopId: activeShop.id,
         addressId: displayAddress.id && !String(displayAddress.id).startsWith('addr') ? displayAddress.id : null,
@@ -279,8 +292,9 @@ export const CheckoutScreen = ({ route, navigation }) => {
         discountAmount: donationAmount > 0 ? 5 : 0,
         handlingFee: displayHandlingFee,
         deliveryFee: displayDeliveryFee,
-        paymentMethod: selectedMethod
+        paymentMethod: payloadMethod
       };
+      console.log('[DEBUG] submitting order payload:', orderPayload);
 
       const result = await api.submitOrder(orderPayload);
       
@@ -294,8 +308,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
           const finalName = `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'Customer';
 
           navigation.navigate('PaymentWebView', {
-            orderId: result.data.orderId,
-            orderNumber: result.data.orderNumber,
+            orderPayload: orderPayload,
             razorpayOrderId: result.data.razorpayOrderId,
             amount: result.data.amount,
             amountPaise: result.data.amountPaise,
@@ -303,9 +316,8 @@ export const CheckoutScreen = ({ route, navigation }) => {
             userName: finalName,
             userEmail: finalEmail,
             userPhone: finalPhone,
-            items: displayItems,
-            address: displayAddress,
-            paymentMethod: selectedMethod
+            paymentMethod: selectedMethodRef.current,
+            address: displayAddress
           });
         } else {
           // COD Flow
@@ -369,23 +381,33 @@ export const CheckoutScreen = ({ route, navigation }) => {
       console.log('WebView payment status:', data.status);
 
       if (data.status === 'success') {
-        setPaymentStatusText('Confirming payment signature...');
+        setPaymentStatusText('Confirming payment and placing order...');
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         try {
-          const response = await fetch(`${API_BASE_URL}/user/orders/verify`, {
+          const response = await fetch(`${API_BASE_URL}/user/orders`, {
             method: 'POST',
             headers: {
               ...api.getHeaders?.()
             },
             signal: controller.signal,
             body: JSON.stringify({
-              orderId: paymentParams.orderId,
-              razorpayPaymentId: data.razorpay_payment_id,
-              razorpayOrderId: data.razorpay_order_id,
-              razorpaySignature: data.razorpay_signature
+              shopId: activeShop.id,
+              addressId: displayAddress.id && !String(displayAddress.id).startsWith('addr') ? displayAddress.id : null,
+              items: displayItems,
+              totalAmount: grandTotal,
+              tipAmount: displayTip,
+              discountAmount: donationAmount > 0 ? 5 : 0,
+              handlingFee: displayHandlingFee,
+              deliveryFee: displayDeliveryFee,
+              paymentMethod: 'ONLINE',
+              paymentDetails: {
+                razorpayPaymentId: data.razorpay_payment_id,
+                razorpayOrderId: data.razorpay_order_id,
+                razorpaySignature: data.razorpay_signature
+              }
             })
           });
           clearTimeout(timeoutId);
@@ -393,65 +415,39 @@ export const CheckoutScreen = ({ route, navigation }) => {
           const resData = await response.json();
           if (response.ok && resData.success) {
             const confirmedOrder = {
-              id: paymentParams.orderNumber,
-              dbId: paymentParams.orderId,
-              order_number: paymentParams.orderNumber,
-              totalAmount: paymentParams.amount,
+              id: resData.data.orderNumber,
+              dbId: resData.data.orderId,
+              order_number: resData.data.orderNumber,
+              totalAmount: grandTotal,
               status: 'Placed',
-              payment_status: 'Paid',
-              createdAt: new Date().toISOString(),
-              items: cartItems,
-              address: activeAddress
+              payment_status: 'PAID',
+              createdAt: resData.data.createdAt || new Date().toISOString(),
+              items: displayItems,
+              address: displayAddress,
+              paymentMethod: 'ONLINE'
             };
             await handleOrderSuccess(confirmedOrder);
           } else {
-            throw new Error(resData.message || 'Signature verification failed');
+            throw new Error(resData.message || 'Signature verification or order creation failed');
           }
         } catch (verifyError) {
           clearTimeout(timeoutId);
-          console.error('Verification error:', verifyError);
-          
-          const pendingOrder = {
-            id: paymentParams.orderNumber,
-            dbId: paymentParams.orderId,
-            order_number: paymentParams.orderNumber,
-            totalAmount: paymentParams.amount,
-            status: 'Pending Payment',
-            payment_status: 'Pending',
-            createdAt: new Date().toISOString(),
-            items: cartItems,
-            address: activeAddress
-          };
-
+          console.error('Verification/Creation error:', verifyError);
+          setIsProcessing(false);
+          setPaymentParams(null);
           Alert.alert(
-            'Payment Verification Pending',
-            'We could not verify your payment immediately. If money was deducted, your order will confirm automatically. Check order details.',
-            [
-              {
-                text: 'View Order Details',
-                onPress: () => {
-                  setIsProcessing(false);
-                  setPaymentParams(null);
-                  navigation.reset({
-                    index: 1,
-                    routes: [
-                      { name: 'MainTabs' },
-                      { name: 'OrderDetails', params: { order: pendingOrder } },
-                    ],
-                  });
-                }
-              }
-            ]
+            'Order Placement Failed',
+            'We could not verify your online payment. If money was deducted, please contact support with your payment ID: ' + (data.razorpay_payment_id || 'N/A')
           );
         }
       } else if (data.status === 'cancelled' || data.status === 'failed') {
         setIsProcessing(false);
         setPaymentParams(null);
-        Alert.alert('Payment Incomplete', 'The payment was cancelled or failed. You can complete it from your Order details.');
+        Alert.alert('Payment Cancelled', 'The online payment was cancelled or failed. Order was not created.');
       } else if (data.status === 'error') {
         setIsProcessing(false);
         setPaymentParams(null);
-        Alert.alert('Payment Error', 'An error occurred while opening the payment app.');
+        Alert.alert('Payment Error', 'An error occurred while processing the online payment.');
       }
     } catch (err) {
       console.error('Parse WebView Message Error:', err);
@@ -646,7 +642,51 @@ export const CheckoutScreen = ({ route, navigation }) => {
               </View>
             </View>
           ))}
-          {/* Payment options removed for direct Razorpay checkout */}
+        </View>
+
+        {/* Payment Options Card */}
+        <View style={styles.paymentMethodCard}>
+          <Text style={styles.sectionTitle}>Payment Method</Text>
+          
+          {/* Pay Online Option */}
+          <TouchableOpacity 
+            style={[
+              styles.paymentOptionRow, 
+              selectedMethod === 'prepaid' && styles.paymentOptionRowActive
+            ]}
+            onPress={() => setSelectedMethod('prepaid')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.optionLeft}>
+              <View style={styles.optionIconContainer}>
+                <Text style={{ fontSize: rf(16) }}>💳</Text>
+              </View>
+              <Text style={styles.optionLabel}>Pay Online (Pay Now)</Text>
+            </View>
+            <View style={[styles.radioCircle, selectedMethod === 'prepaid' && styles.radioCircleActive]}>
+              {selectedMethod === 'prepaid' && <View style={styles.radioInner} />}
+            </View>
+          </TouchableOpacity>
+
+          {/* Cash on Delivery Option */}
+          <TouchableOpacity 
+            style={[
+              styles.paymentOptionRow, 
+              selectedMethod === 'cod' && styles.paymentOptionRowActive
+            ]}
+            onPress={() => setSelectedMethod('cod')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.optionLeft}>
+              <View style={styles.optionIconContainer}>
+                <Text style={{ fontSize: rf(16) }}>💵</Text>
+              </View>
+              <Text style={styles.optionLabel}>Cash on Delivery (COD)</Text>
+            </View>
+            <View style={[styles.radioCircle, selectedMethod === 'cod' && styles.radioCircleActive]}>
+              {selectedMethod === 'cod' && <View style={styles.radioInner} />}
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Bill Details Summary Card */}
@@ -765,7 +805,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
                 ),
               }}
             >
-              Swipe to Pay ➔
+              {selectedMethod === 'prepaid' ? 'Swipe to Pay ➔' : 'Swipe to Place Order ➔'}
             </Animated.Text>
  
             {/* Drag Handle Thumb */}
@@ -817,8 +857,14 @@ export const CheckoutScreen = ({ route, navigation }) => {
           {isSuccess ? (
             <View style={styles.successContainer}>
               <CheckCircle2 size={64} color={theme.colors.success} />
-              <Text style={styles.successTitle}>Payment Successful!</Text>
-              <Text style={styles.successSubtitle}>Your order has been placed successfully</Text>
+              <Text style={styles.successTitle}>
+                {selectedMethodRef.current === 'cod' ? 'Order Placed!' : 'Payment Successful!'}
+              </Text>
+              <Text style={styles.successSubtitle}>
+                {selectedMethodRef.current === 'cod'
+                  ? 'Your Cash on Delivery order was placed successfully.'
+                  : 'Your online payment was verified and order confirmed.'}
+              </Text>
             </View>
           ) : (
             <View style={{ alignItems: 'center' }}>

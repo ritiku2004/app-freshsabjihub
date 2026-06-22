@@ -12,8 +12,7 @@ import { moderateScale, rf } from '../../utils/responsive';
 
 export const PaymentWebViewScreen = ({ route, navigation }) => {
   const { 
-    orderId, 
-    orderNumber, 
+    orderPayload, 
     razorpayOrderId, 
     amount, 
     amountPaise, 
@@ -21,7 +20,9 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
     userName, 
     userEmail, 
     userPhone,
-    paymentMethod = 'upi' // Default to standard UPI list
+    paymentMethod = 'upi', // Default to standard UPI list
+    orderId = null,
+    orderNumber = 'FSH' + Math.floor(100000 + Math.random() * 900000)
   } = route.params;
 
   // Sanitize name, email, and contact number to avoid Razorpay prompt screens
@@ -57,7 +58,7 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
   const { clearCart } = useContext(CartContext);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  const isMock = false; // Completely disable simulator
+  const isMock = razorpayOrderId && razorpayOrderId.startsWith('order_mock_'); // Enable simulator dynamically for mock mode
 
   // Simulated HTML if mock order ID is generated (no active keys), otherwise loaded live Razorpay SDK
   const htmlContent = isMock ? `
@@ -296,18 +297,20 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
 
       if (data.status === 'success') {
         setIsVerifying(true);
-        // Call backend verification
+        // Call backend verification & creation
         try {
-          const response = await fetch(`${API_BASE_URL}/user/orders/verify`, {
+          const response = await fetch(`${API_BASE_URL}/user/orders`, {
             method: 'POST',
             headers: {
               ...api.getHeaders?.()
             },
             body: JSON.stringify({
-              orderId: orderId,
-              razorpayPaymentId: data.razorpay_payment_id,
-              razorpayOrderId: data.razorpay_order_id,
-              razorpaySignature: data.razorpay_signature
+              ...orderPayload,
+              paymentDetails: {
+                razorpayPaymentId: data.razorpay_payment_id,
+                razorpayOrderId: data.razorpay_order_id,
+                razorpaySignature: data.razorpay_signature
+              }
             })
           });
 
@@ -315,15 +318,15 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
           if (response.ok && resData.success) {
             clearCart();
             // Success! Navigate to OrderDetails
-            const orderPayload = {
-              id: orderNumber,
-              dbId: orderId,
-              order_number: orderNumber,
+            const confirmedOrder = {
+              id: resData.data.orderNumber,
+              dbId: resData.data.orderId,
+              order_number: resData.data.orderNumber,
               totalAmount: amount,
               status: 'Placed',
-              payment_status: 'Paid',
-              createdAt: new Date().toISOString(),
-              items: route.params.items || [],
+              payment_status: 'PAID',
+              createdAt: resData.data.createdAt || new Date().toISOString(),
+              items: orderPayload.items || [],
               address: route.params.address
             };
 
@@ -335,7 +338,7 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
                     index: 1,
                     routes: [
                       { name: 'MainTabs' },
-                      { name: 'OrderDetails', params: { order: orderPayload } },
+                      { name: 'OrderDetails', params: { order: confirmedOrder } },
                     ],
                   });
                 }
@@ -348,30 +351,13 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
           console.error('Verify Payment Error:', verifyError);
           setIsVerifying(false);
           Alert.alert(
-            'Verification Failed',
-            'We could not verify your payment signature, but if your money was deducted, our backend will reconcile it automatically within 15 minutes. Check Order details.',
+            'Order Placement Failed',
+            'We could not verify your online payment. If money was deducted, please contact support with your payment ID: ' + (data.razorpay_payment_id || 'N/A'),
             [
               {
-                text: 'View Order Details',
+                text: 'Go Back',
                 onPress: () => {
-                  const fallbackOrder = {
-                    id: orderNumber,
-                    dbId: orderId,
-                    order_number: orderNumber,
-                    totalAmount: amount,
-                    status: 'Pending Payment',
-                    payment_status: 'Pending',
-                    createdAt: new Date().toISOString(),
-                    items: route.params.items || [],
-                    address: route.params.address
-                  };
-                  navigation.reset({
-                    index: 1,
-                    routes: [
-                      { name: 'MainTabs' },
-                      { name: 'OrderDetails', params: { order: fallbackOrder } },
-                    ],
-                  });
+                  navigation.goBack();
                 }
               }
             ]
@@ -380,7 +366,7 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
       } else if (data.status === 'cancelled') {
         Alert.alert(
           'Payment Cancelled',
-          'Your payment was cancelled. You can complete your order anytime from the cart.',
+          'Your payment was cancelled. Your order was not created, and your cart is still active.',
           [
             {
               text: 'OK',

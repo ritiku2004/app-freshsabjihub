@@ -63,7 +63,7 @@ export const LoginScreen = ({ route, navigation }) => {
             <View style={styles.logoContainer}>
               <Image source={require('../../../assets/Logo/logo.png')} style={styles.logoImage} />
             </View>
-            <Text style={styles.welcomeTitle}>FreshCart</Text>
+            <Text style={styles.welcomeTitle}>Fresh Sabji Hub</Text>
             <Text style={styles.welcomeSubtitle}>Fresh groceries delivered to you</Text>
           </View>
 

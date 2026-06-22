@@ -48,7 +48,7 @@ export const ProductDetailsScreen = ({ route, navigation }) => {
     if (!product) return;
     try {
       await Share.share({
-        message: `Order ${product.name} on FreshCart now! Fresh groceries delivered quickly.`,
+        message: `Order ${product.name} on Fresh Sabji Hub now! Fresh groceries delivered quickly.`,
       });
     } catch (e) {
       console.error(e);
@@ -205,7 +205,7 @@ export const ProductDetailsScreen = ({ route, navigation }) => {
 
         {/* Trust Indicators */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Why Choose FreshCart?</Text>
+          <Text style={styles.sectionTitle}>Why Choose Fresh Sabji Hub?</Text>
 
           <View style={styles.trustContainer}>
             <View style={styles.trustRow}>

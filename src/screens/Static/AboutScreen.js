@@ -41,7 +41,7 @@ export const AboutScreen = ({ navigation }) => {
               <Image source={require('../../../assets/Logo/logo.png')} style={styles.logoImage} />
             </View>
           </View>
-          <Text style={styles.heroTitle}>FreshCart</Text>
+          <Text style={styles.heroTitle}>Fresh Sabji Hub</Text>
           <Text style={styles.heroSubtitle}>Nourishing Lives, Freshly & Fast</Text>
           <View style={styles.badgeContainer}>
             <Text style={styles.badgeText}>100% ORGANIC PROMISE</Text>
@@ -52,7 +52,7 @@ export const AboutScreen = ({ navigation }) => {
         <View style={styles.section}>
           <Text style={styles.welcomeText}>Welcome to the Future of Grocery</Text>
           <Text style={styles.paragraph}>
-            At FreshCart, we believe that access to clean, fresh, and nutritious food is a fundamental right. We are rewriting the rules of the grocery supply chain to bring farm-fresh produce and daily household essentials straight to your home.
+            At Fresh Sabji Hub, we believe that access to clean, fresh, and nutritious food is a fundamental right. We are rewriting the rules of the grocery supply chain to bring farm-fresh produce and daily household essentials straight to your home.
           </Text>
         </View>
 

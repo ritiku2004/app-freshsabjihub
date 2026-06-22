@@ -9,6 +9,7 @@ export const CartContext = createContext({
   cartSavings: 0,
   deliveryFee: 0,
   handlingFee: 0,
+  taxAmount: 0,
   cartGrandTotal: 0,
   freeDeliveryThreshold: 0,
   freeHandlingThreshold: 0,
@@ -278,12 +279,13 @@ export const CartProvider = ({ children }) => {
   const cartTotalQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   
   // Use backend computed values
-  const pricing = cartData.pricing || { subtotal: 0, savings: 0, deliveryFee: 0, handlingFee: 0, grandTotal: 0 };
+  const pricing = cartData.pricing || { subtotal: 0, savings: 0, deliveryFee: 0, handlingFee: 0, taxAmount: 0, grandTotal: 0 };
   
   const cartSubtotal = pricing.subtotal || 0;
   const cartSavings = pricing.savings || 0;
   const deliveryFee = pricing.deliveryFee || 0;
   const handlingFee = pricing.handlingFee || 0;
+  const taxAmount = pricing.taxAmount || 0;
   const cartGrandTotal = pricing.grandTotal || 0;
   const freeDeliveryThreshold = pricing.freeDeliveryThreshold || 0;
   const freeHandlingThreshold = pricing.freeHandlingThreshold || 0;
@@ -298,6 +300,7 @@ export const CartProvider = ({ children }) => {
         cartSavings,
         deliveryFee,
         handlingFee,
+        taxAmount,
         cartGrandTotal,
         freeDeliveryThreshold,
         freeHandlingThreshold,

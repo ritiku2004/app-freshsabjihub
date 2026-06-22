@@ -36,6 +36,43 @@ import { moderateScale, rf } from '../utils/responsive';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Per-tab Stack Navigators to keep bottom navigator visible on sub-screens
+const HomeStack = createNativeStackNavigator();
+const HomeStackNavigator = () => (
+  <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+    <HomeStack.Screen name="Home" component={HomeScreen} />
+    <HomeStack.Screen name="CategoryProducts" component={CategoryProductsScreen} />
+    <HomeStack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+  </HomeStack.Navigator>
+);
+
+const CategoriesStack = createNativeStackNavigator();
+const CategoriesStackNavigator = () => (
+  <CategoriesStack.Navigator screenOptions={{ headerShown: false }}>
+    <CategoriesStack.Screen name="Categories" component={CategoriesScreen} />
+    <CategoriesStack.Screen name="CategoryProducts" component={CategoryProductsScreen} />
+    <CategoriesStack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+  </CategoriesStack.Navigator>
+);
+
+const CartStack = createNativeStackNavigator();
+const CartStackNavigator = () => (
+  <CartStack.Navigator screenOptions={{ headerShown: false }}>
+    <CartStack.Screen name="Cart" component={CartScreen} />
+    <CartStack.Screen name="CategoryProducts" component={CategoryProductsScreen} />
+    <CartStack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+  </CartStack.Navigator>
+);
+
+const OrdersStack = createNativeStackNavigator();
+const OrdersStackNavigator = () => (
+  <OrdersStack.Navigator screenOptions={{ headerShown: false }}>
+    <OrdersStack.Screen name="Orders" component={OrdersScreen} />
+    <OrdersStack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+    <OrdersStack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+  </OrdersStack.Navigator>
+);
+
 // Custom bottom tab bar with top-border active indicator
 const CustomTabBar = ({ state, descriptors, navigation }) => {
   const insets = useSafeAreaInsets();
@@ -209,7 +246,7 @@ const BottomTabNavigator = () => {
     >
       <Tab.Screen
         name="HomeTab"
-        component={HomeScreen}
+        component={HomeStackNavigator}
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ color, size }) => <Store size={size} color={color} />,
@@ -217,7 +254,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="CategoriesTab"
-        component={CategoriesScreen}
+        component={CategoriesStackNavigator}
         options={{
           tabBarLabel: 'Categories',
           tabBarIcon: ({ color, size }) => <LayoutGrid size={size} color={color} />,
@@ -225,7 +262,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="CartTab"
-        component={CartScreen}
+        component={CartStackNavigator}
         options={{
           tabBarLabel: 'Cart',
           tabBarIcon: ({ color, size }) => <AnimatedCartIcon color={color} size={size} itemCount={cartTotalQuantity} />,
@@ -234,7 +271,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="OrdersTab"
-        component={OrdersScreen}
+        component={OrdersStackNavigator}
         options={{
           tabBarLabel: 'Order Again',
           tabBarIcon: ({ color, size }) => <RotateCcw size={size - 2} color={color} />,
