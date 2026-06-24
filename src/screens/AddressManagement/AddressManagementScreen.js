@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, Image, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Home, Briefcase, MapPin, Trash2, Check, Navigation } from 'lucide-react-native';
+import { ArrowLeft, Home, Briefcase, MapPin, Trash2, Check, Navigation, ChevronDown } from 'lucide-react-native';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { theme } from '../../theme';
@@ -14,6 +14,7 @@ import { AppButton } from '../../components/AppButton';
 import styles from './styles';
 import { moderateScale, rf } from '../../utils/responsive';
 import { Loader } from '../../components/Loader';
+import { api } from '../../services/api';
  
 export const AddressManagementScreen = ({ navigation }) => {
   const queryClient = useQueryClient();
@@ -49,6 +50,8 @@ export const AddressManagementScreen = ({ navigation }) => {
   const [receiverName, setReceiverName] = useState('');
   const [receiverMobile, setReceiverMobile] = useState('');
   const [cityName, setCityName] = useState('');
+  const [availableCities, setAvailableCities] = useState([]);
+  const [showCityPicker, setShowCityPicker] = useState(false);
   const [area, setArea] = useState('');
   const [flatNo, setFlatNo] = useState('');
   const [landmark, setLandmark] = useState('');
@@ -60,6 +63,19 @@ export const AddressManagementScreen = ({ navigation }) => {
   const [isMapReady, setIsMapReady] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [editingAddressId, setEditingAddressId] = useState(null);
+
+  useEffect(() => {
+    const loadCities = async () => {
+      try {
+        const shops = await api.getShops();
+        const cities = [...new Set(shops.filter(s => s.is_active).map(s => s.city))];
+        setAvailableCities(cities);
+      } catch (err) {
+        console.log('Failed to fetch cities:', err);
+      }
+    };
+    loadCities();
+  }, []);
 
   useEffect(() => {
     const existing = addresses.find(addr => addr.type === addressType);
@@ -88,7 +104,16 @@ export const AddressManagementScreen = ({ navigation }) => {
       setLongitude(null);
       setEditingAddressId(null);
     }
-  }, [addressType, addresses, isMapReady]);
+  }, [addressType, addresses, isMapReady, availableCities]);
+
+  // Sync addressType with activeAddress selection
+  useEffect(() => {
+    if (activeAddress && activeAddress.type) {
+      setAddressType(activeAddress.type);
+    } else {
+      setAddressType('Home');
+    }
+  }, [activeAddress]);
 
   // Static HTML template to prevent WebView re-rendering on state changes
   const mapHtml = React.useMemo(() => `
@@ -422,12 +447,43 @@ export const AddressManagementScreen = ({ navigation }) => {
             containerStyle={styles.input}
           />
  
-          <AppInput
-            value={cityName}
-            onChangeText={(txt) => { isTyping.current = true; setCityName(txt); }}
-            placeholder="City Name"
-            containerStyle={styles.input}
-          />
+          <TouchableOpacity
+            style={styles.pickerSelector}
+            onPress={() => setShowCityPicker(!showCityPicker)}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.pickerSelectorText, !cityName && styles.placeholderText]}>
+              {cityName || 'Select City'}
+            </Text>
+            <ChevronDown size={18} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+
+          {showCityPicker && (
+            <View style={styles.dropdownContainer}>
+              {availableCities.map((item) => (
+                <TouchableOpacity
+                  key={item}
+                  style={[
+                    styles.dropdownItem,
+                    cityName === item && styles.selectedDropdownItem
+                  ]}
+                  onPress={() => {
+                    setCityName(item);
+                    setShowCityPicker(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[
+                    styles.dropdownItemText,
+                    cityName === item && styles.selectedDropdownItemText
+                  ]}>
+                    {item}
+                  </Text>
+                  {cityName === item && <Check size={16} color={theme.colors.primary} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
  
           <AppInput
             value={area}

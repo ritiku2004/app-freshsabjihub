@@ -137,4 +137,51 @@ export default StyleSheet.create({
     fontWeight: theme.typography.weights.bold,
     marginLeft: theme.spacing.sm,
   },
+  pickerSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.sm,
+    paddingHorizontal: theme.spacing.md,
+    height: moderateScale(48),
+    backgroundColor: '#FAFAFA',
+    marginBottom: theme.spacing.md,
+  },
+  pickerSelectorText: {
+    fontSize: rf(14),
+    color: theme.colors.textPrimary,
+  },
+  placeholderText: {
+    color: '#94A3B8',
+  },
+  dropdownContainer: {
+    marginTop: -theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.sm,
+    backgroundColor: theme.colors.white,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: moderateScale(12),
+    paddingHorizontal: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  selectedDropdownItem: {
+    backgroundColor: '#ECFDF5',
+  },
+  dropdownItemText: {
+    fontSize: rf(13.5),
+    color: theme.colors.textPrimary,
+  },
+  selectedDropdownItemText: {
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
 });

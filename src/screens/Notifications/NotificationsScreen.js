@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Bell, Package, Tag, Info } from 'lucide-react-native';
+import { ArrowLeft, Bell, Package, Tag, Info, CheckSquare, Trash2 } from 'lucide-react-native';
 import { theme } from '../../theme';
 import { moderateScale, rf } from '../../utils/responsive';
 
@@ -78,18 +78,21 @@ export const NotificationsScreen = ({ navigation }) => {
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Notifications</Text>
           </View>
-          {notifications.length > 0 && (
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={markAllAsRead} style={styles.headerActionBtn}>
-                <Text style={styles.actionText}>Read All</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={clearAll} style={styles.headerActionBtn}>
-                <Text style={styles.actionText}>Clear</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
       </LinearGradient>
+
+      {notifications.length > 0 && (
+        <View style={styles.actionRow}>
+          <TouchableOpacity onPress={markAllAsRead} style={styles.actionBtn} activeOpacity={0.7}>
+            <CheckSquare size={16} color="#475569" />
+            <Text style={styles.actionBtnText}>Mark All Read</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={clearAll} style={[styles.actionBtn, styles.clearBtn]} activeOpacity={0.7}>
+            <Trash2 size={16} color="#EF4444" />
+            <Text style={[styles.actionBtnText, styles.clearBtnText]}>Clear All</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {notifications.length > 0 ? (
         <FlatList
@@ -132,22 +135,6 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerActionBtn: {
-    marginLeft: moderateScale(12),
-    paddingVertical: moderateScale(4),
-    paddingHorizontal: moderateScale(8),
-    borderRadius: moderateScale(8),
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  actionText: {
-    color: theme.colors.white,
-    fontSize: rf(12),
-    fontWeight: '600',
   },
   backButton: {
     padding: moderateScale(4),
@@ -247,5 +234,32 @@ const styles = StyleSheet.create({
     fontSize: rf(14),
     color: theme.colors.textSecondary,
     textAlign: 'center',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: moderateScale(16),
+    paddingBottom: moderateScale(4),
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingVertical: moderateScale(8),
+    paddingHorizontal: moderateScale(16),
+    borderRadius: moderateScale(8),
+  },
+  actionBtnText: {
+    color: '#475569',
+    fontSize: rf(12),
+    fontWeight: '600',
+    marginLeft: moderateScale(6),
+  },
+  clearBtn: {
+    backgroundColor: '#FEF2F2',
+  },
+  clearBtnText: {
+    color: '#EF4444',
   },
 });

@@ -201,7 +201,6 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: theme.spacing.lg,
     ...theme.shadows.lg,
   },
   stickyPriceLabel: {

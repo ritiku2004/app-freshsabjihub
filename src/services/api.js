@@ -478,4 +478,16 @@ export const api = {
       throw error;
     }
   },
+
+  getShops: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/catalog/shops`);
+      if (!response.ok) throw new Error('Failed to fetch shops');
+      const data = await response.json();
+      return data.data || [];
+    } catch (error) {
+      console.error('Error fetching shops:', error);
+      return [];
+    }
+  },
 };
