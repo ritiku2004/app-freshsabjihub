@@ -46,3 +46,8 @@ yarn-error.*
 
 # Environment variables
 .env
+
+# Scratch files and custom logs
+scratch_*
+error_log.txt
+request_logs.txt
