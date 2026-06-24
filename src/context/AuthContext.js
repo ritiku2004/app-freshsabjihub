@@ -1,8 +1,9 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api, setApiAuthToken } from '../services/api';
 import { calculateDeliveryETA } from '../services/distanceService';
 import { registerForPushNotificationsAsync } from '../services/notificationHelper';
+import { NotificationContext } from './NotificationContext';
 
 const ONBOARDING_KEY = '@grocery_onboarding';
 const USER_KEY = '@grocery_user';
@@ -45,6 +46,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [deliveryETA, setDeliveryETA] = useState(null);
 
+  // Access notification context so we can scope notifications per user
+  const { initForUser } = useContext(NotificationContext);
+
   useEffect(() => {
     const loadSession = async () => {
       try {
@@ -78,6 +82,8 @@ export const AuthProvider = ({ children }) => {
           isAuthed = true;
           // Register push notifications device token on startup
           registerForPushNotificationsAsync().catch(err => console.log('Failed to register device token on startup:', err));
+          // Load notifications for the restored user
+          initForUser(userObj.id.toString()).catch(() => {});
         }
 
         let loadedAddresses = DEFAULT_ADDRESSES;
@@ -244,6 +250,9 @@ export const AuthProvider = ({ children }) => {
       // Register push notifications device token after authentication (also triggers notification permission prompt)
       registerForPushNotificationsAsync().catch(err => console.log('Failed to register device token on login:', err));
 
+      // Scope notifications to this user (clears other users' notifications from screen)
+      initForUser(userData.id.toString()).catch(() => {});
+
       // Merge temporary guest addresses to the backend database
       const guestAddresses = addresses.filter(addr => 
         addr.id && 
@@ -323,6 +332,9 @@ export const AuthProvider = ({ children }) => {
       const newGuestId = 'guest_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
       await AsyncStorage.setItem('@grocery_guest_id', newGuestId);
       setGuestId(newGuestId);
+
+      // Clear notifications when logging out (switch back to guest scope)
+      initForUser(null).catch(() => {});
     } catch (e) {
       console.error(e);
     }

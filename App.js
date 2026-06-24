@@ -109,16 +109,16 @@ export default function App() {
         <SafeAreaView edges={['top']} style={{ flex: 0, backgroundColor: theme.colors.primary }} />
         <View style={{ flex: 1, backgroundColor: theme.colors.white }}>
           <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <NotificationProvider>
+            <NotificationProvider>
+              <AuthProvider>
                 <CartProvider>
                   <NavigationContainer onStateChange={setNavBarBlack}>
                     <StatusBar style="light" backgroundColor="transparent" translucent={true} />
                     <AppNavigator />
                   </NavigationContainer>
                 </CartProvider>
-              </NotificationProvider>
-            </AuthProvider>
+              </AuthProvider>
+            </NotificationProvider>
           </QueryClientProvider>
         </View>
       </View>
