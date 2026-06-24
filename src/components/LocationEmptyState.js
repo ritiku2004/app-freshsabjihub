@@ -54,8 +54,8 @@ export const LocationEmptyState = ({ type, activeAddress, onAction }) => {
       btnText: 'Add Address',
     },
     outOfZone: {
-      title: 'Out of Delivery Zone',
-      desc: `We currently don't deliver to ${activeAddress?.zipcode || 'your area'}. Please select a different address.`,
+      title: 'No Service Available',
+      desc: '',
       btnText: 'Change Address',
     }
   };
@@ -86,9 +86,11 @@ export const LocationEmptyState = ({ type, activeAddress, onAction }) => {
         )}
       </Animated.View>
       <Text style={{ fontSize: rf(20), fontWeight: '800', color: theme.colors.text }}>{stateConfig.title}</Text>
-      <Text style={{ fontSize: rf(14), color: theme.colors.textSecondary, textAlign: 'center', marginTop: theme.spacing.sm, paddingHorizontal: theme.spacing.lg }}>
-        {stateConfig.desc}
-      </Text>
+      {stateConfig.desc ? (
+        <Text style={{ fontSize: rf(14), color: theme.colors.textSecondary, textAlign: 'center', marginTop: theme.spacing.sm, paddingHorizontal: theme.spacing.lg }}>
+          {stateConfig.desc}
+        </Text>
+      ) : null}
       <TouchableOpacity 
         style={{ 
           marginTop: theme.spacing.xl, 

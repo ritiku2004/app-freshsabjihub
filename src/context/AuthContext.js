@@ -315,10 +315,8 @@ export const AuthProvider = ({ children }) => {
       setToken(null);
       setApiAuthToken(null);
       setIsAuthenticated(false);
-      setHasCompletedOnboarding(false);
       await AsyncStorage.removeItem(USER_KEY);
       await AsyncStorage.removeItem(TOKEN_KEY);
-      await AsyncStorage.removeItem(ONBOARDING_KEY);
       await AsyncStorage.removeItem(ADDRESSES_KEY);
       await AsyncStorage.removeItem(ACTIVE_ADDRESS_KEY);
       

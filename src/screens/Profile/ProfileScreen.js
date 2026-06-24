@@ -37,11 +37,11 @@ const resolveAvatarUrl = (url) => {
   if (url.startsWith('http://') || url.startsWith('https://')) {
     if (Platform.OS !== 'web') {
       try {
-        const apiHost = API_BASE_URL.split('/')[2]; // e.g. "192.168.29.177:3000"
+        const apiHost = API_BASE_URL.split('/')[2]; // e.g. "10.49.25.241:3000"
         return url
-          .replace('localhost:3000', apiHost)
-          .replace('127.0.0.1:3000', apiHost)
-          .replace('10.0.2.2:3000', apiHost);
+          .replace(/localhost(:\d+)?/g, apiHost)
+          .replace(/127\.0\.0\.1(:\d+)?/g, apiHost)
+          .replace(/10\.0\.2\.2(:\d+)?/g, apiHost);
       } catch (e) {
         return url;
       }

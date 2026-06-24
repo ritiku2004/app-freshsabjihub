@@ -272,7 +272,7 @@ export const ProductDetailsScreen = ({ route, navigation }) => {
       </ScrollView>
 
       {/* Sticky Bottom Actions Bar */}
-      <View style={[styles.bottomStickyBar, { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) }]}>
+      <View style={styles.bottomStickyBar}>
         <View>
           <Text style={styles.stickyPriceLabel}>Total Price</Text>
           <Text style={styles.stickyPriceText}>
