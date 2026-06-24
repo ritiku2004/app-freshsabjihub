@@ -72,18 +72,68 @@ export const NotificationProvider = ({ children }) => {
     return () => clearInterval(tickRef.current);
   }, []);
 
+  // One-time migration: move old @grocery_notifications data to the new user-scoped key
+  const migrateOldNotifications = useCallback(async (userId, newKey) => {
+    const OLD_KEY = '@grocery_notifications';
+    try {
+      const oldData = await AsyncStorage.getItem(OLD_KEY);
+      if (!oldData) return null;
+
+      const oldParsed = JSON.parse(oldData);
+      if (!Array.isArray(oldParsed) || oldParsed.length === 0) return null;
+
+      // Sanitize: old entries may have static 'time' strings and no 'timestamp'.
+      // Assign a best-guess timestamp so relative time works correctly.
+      const now = Date.now();
+      const sanitized = oldParsed
+        .filter(n => n && n.title) // drop broken entries
+        .map((n, index) => {
+          // If no timestamp, estimate based on old static 'time' string
+          let ts = n.timestamp;
+          if (!ts) {
+            if (n.time === 'Just now') ts = now - 1000 * 60;
+            else if (n.time && n.time.endsWith('m ago')) ts = now - parseInt(n.time) * 60 * 1000;
+            else if (n.time && n.time.endsWith('h ago')) ts = now - parseInt(n.time) * 60 * 60 * 1000;
+            else if (n.time && n.time.endsWith('d ago')) ts = now - parseInt(n.time) * 24 * 60 * 60 * 1000;
+            else ts = now - (index + 1) * 1000 * 60 * 10; // fallback: 10 min apart
+          }
+          const dedupeKey = n.dedupeKey || buildDedupeKey(n.title, n.message || '', n.data || {});
+          return { ...n, timestamp: ts, dedupeKey };
+        });
+
+      console.log(`[NotificationContext] Migrating ${sanitized.length} old notifications to new key`);
+      await AsyncStorage.setItem(newKey, JSON.stringify(sanitized));
+      // Remove old key so we don't migrate again
+      await AsyncStorage.removeItem(OLD_KEY);
+      return sanitized;
+    } catch (e) {
+      console.warn('[NotificationContext] Migration failed (non-fatal):', e);
+      return null;
+    }
+  }, []);
+
   // Load notifications for a specific user from AsyncStorage
   const loadNotificationsForUser = useCallback(async (userId) => {
     try {
       const key = getStorageKey(userId);
-      const stored = await AsyncStorage.getItem(key);
-      const parsed = stored ? JSON.parse(stored) : [];
-      setNotifications(parsed);
+      let stored = await AsyncStorage.getItem(key);
+      let parsed = stored ? JSON.parse(stored) : null;
+
+      // If new key is empty, attempt migration from old storage
+      if (!parsed || parsed.length === 0) {
+        const migrated = await migrateOldNotifications(userId, key);
+        if (migrated && migrated.length > 0) {
+          parsed = migrated;
+        }
+      }
+
+      const finalList = parsed || [];
+      setNotifications(finalList);
 
       // Pre-populate seen dedupe keys from existing notifications so we
       // don't re-add them on app resume
       const newSeen = new Set();
-      parsed.forEach((n) => {
+      finalList.forEach((n) => {
         if (n.dedupeKey) newSeen.add(n.dedupeKey);
       });
       seenDedupeKeys.current = newSeen;
@@ -91,7 +141,7 @@ export const NotificationProvider = ({ children }) => {
       console.error('[NotificationContext] Failed to load notifications:', error);
       setNotifications([]);
     }
-  }, []);
+  }, [migrateOldNotifications]);
 
 
   // Called by AuthContext after login/logout with the new userId (null for guest/logout)
