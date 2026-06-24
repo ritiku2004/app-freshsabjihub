@@ -112,37 +112,81 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
-  // Load notifications for a specific user from AsyncStorage
+  // Load notifications for a specific user from AsyncStorage or Backend
   const loadNotificationsForUser = useCallback(async (userId) => {
     try {
-      const key = getStorageKey(userId);
-      let stored = await AsyncStorage.getItem(key);
-      let parsed = stored ? JSON.parse(stored) : null;
+      if (!userId) {
+        // Guest mode fallback
+        const key = getStorageKey(null);
+        let stored = await AsyncStorage.getItem(key);
+        let parsed = stored ? JSON.parse(stored) : null;
 
-      // If new key is empty, attempt migration from old storage
-      if (!parsed || parsed.length === 0) {
-        const migrated = await migrateOldNotifications(userId, key);
-        if (migrated && migrated.length > 0) {
-          parsed = migrated;
+        // If new key is empty, attempt migration from old storage
+        if (!parsed || parsed.length === 0) {
+          const migrated = await migrateOldNotifications(null, key);
+          if (migrated && migrated.length > 0) {
+            parsed = migrated;
+          }
         }
+
+        const finalList = parsed || [];
+        setNotifications(finalList);
+
+        const newSeen = new Set();
+        finalList.forEach((n) => {
+          if (n.dedupeKey) newSeen.add(n.dedupeKey);
+        });
+        seenDedupeKeys.current = newSeen;
+        return;
       }
 
-      const finalList = parsed || [];
-      setNotifications(finalList);
+      // Authenticated Mode: Load from Backend DB
+      try {
+        const { api } = require('../services/api');
+        const dbList = await api.fetchNotifications();
+        
+        const mappedList = dbList.map((n) => ({
+          id: String(n.id),
+          title: n.title,
+          message: n.message,
+          type: n.type,
+          data: n.data,
+          isRead: Boolean(n.isRead),
+          timestamp: n.createdAt ? new Date(n.createdAt).getTime() : Date.now(),
+          clickable: !!(n.data?.orderId || n.type),
+          dedupeKey: n.data?.notificationId || String(n.id)
+        }));
 
-      // Pre-populate seen dedupe keys from existing notifications so we
-      // don't re-add them on app resume
-      const newSeen = new Set();
-      finalList.forEach((n) => {
-        if (n.dedupeKey) newSeen.add(n.dedupeKey);
-      });
-      seenDedupeKeys.current = newSeen;
+        setNotifications(mappedList);
+
+        const newSeen = new Set();
+        mappedList.forEach((n) => {
+          if (n.dedupeKey) newSeen.add(n.dedupeKey);
+        });
+        seenDedupeKeys.current = newSeen;
+
+        // Cache in AsyncStorage
+        const key = getStorageKey(userId);
+        await AsyncStorage.setItem(key, JSON.stringify(mappedList));
+      } catch (err) {
+        console.warn('[NotificationContext] Failed to fetch backend notifications, loading cached:', err);
+        // Fallback to AsyncStorage cache
+        const key = getStorageKey(userId);
+        let stored = await AsyncStorage.getItem(key);
+        let parsed = stored ? JSON.parse(stored) : [];
+        setNotifications(parsed);
+
+        const newSeen = new Set();
+        parsed.forEach((n) => {
+          if (n.dedupeKey) newSeen.add(n.dedupeKey);
+        });
+        seenDedupeKeys.current = newSeen;
+      }
     } catch (error) {
       console.error('[NotificationContext] Failed to load notifications:', error);
       setNotifications([]);
     }
   }, [migrateOldNotifications]);
-
 
   // Called by AuthContext after login/logout with the new userId (null for guest/logout)
   const initForUser = useCallback(
@@ -163,7 +207,7 @@ export const NotificationProvider = ({ children }) => {
   // Add a new notification — safe against duplicates
   const addNotification = useCallback(
     async (title, body, data = {}, fcmMessageId = null) => {
-      const dedupeKey = fcmMessageId || buildDedupeKey(title, body, data);
+      const dedupeKey = fcmMessageId || data.notificationId || buildDedupeKey(title, body, data);
 
       // Skip if already seen in this session
       if (seenDedupeKeys.current.has(dedupeKey)) {
@@ -209,6 +253,15 @@ export const NotificationProvider = ({ children }) => {
         );
         return updated;
       });
+
+      if (currentUserId) {
+        try {
+          const { api } = require('../services/api');
+          await api.markNotificationRead(id);
+        } catch (e) {
+          console.error('[NotificationContext] Failed to mark read on backend:', e);
+        }
+      }
     },
     [currentUserId]
   );
@@ -222,6 +275,15 @@ export const NotificationProvider = ({ children }) => {
       );
       return updated;
     });
+
+    if (currentUserId) {
+      try {
+        const { api } = require('../services/api');
+        await api.markAllNotificationsRead();
+      } catch (e) {
+        console.error('[NotificationContext] Failed to mark all read on backend:', e);
+      }
+    }
   }, [currentUserId]);
 
   const clearAll = useCallback(async () => {
@@ -229,6 +291,15 @@ export const NotificationProvider = ({ children }) => {
     setNotifications([]);
     seenDedupeKeys.current.clear();
     await AsyncStorage.setItem(key, JSON.stringify([]));
+
+    if (currentUserId) {
+      try {
+        const { api } = require('../services/api');
+        await api.clearNotifications();
+      } catch (e) {
+        console.error('[NotificationContext] Failed to clear notifications on backend:', e);
+      }
+    }
   }, [currentUserId]);
 
   // Keep the ref synced with latest addNotification
@@ -254,13 +325,8 @@ export const NotificationProvider = ({ children }) => {
       );
 
       // Background/tap: user taps a notification (do NOT re-add — just navigate)
-      // The notification was already delivered; tapping it should only navigate,
-      // not create a duplicate entry. We only add if the app was killed (cold start).
       subscriptionResponseRef.current = Notifications.addNotificationResponseReceivedListener(
         (response) => {
-          // The notification is already stored from the received listener.
-          // We only need to handle navigation here, not re-add the notification.
-          // If app was killed and this is the initial notification, add it once.
           const { title, body, data } = response.notification.request.content;
           const msgId = response.notification.request.identifier || null;
           if (addNotificationRef.current) addNotificationRef.current(title, body, data || {}, msgId);
