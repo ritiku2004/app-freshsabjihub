@@ -35,7 +35,8 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "./withUpiQueries"
+      "./withUpiQueries",
+      "expo-notifications"
     ],
     "extra": {
       "eas": {

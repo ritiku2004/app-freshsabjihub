@@ -68,7 +68,8 @@ export const NotificationsScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={[theme.colors.primary, theme.colors.primary]}
+        colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
+        locations={[0, 0.55, 1]}
         style={[styles.header, { paddingTop: moderateScale(12) }]}
       >
         <View style={styles.headerContent}>
@@ -123,22 +124,19 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: moderateScale(12),
-    borderBottomLeftRadius: moderateScale(24),
-    borderBottomRightRadius: moderateScale(24),
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: moderateScale(10),
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   backButton: {
-    padding: moderateScale(4),
-    marginRight: moderateScale(12),
+    paddingRight: moderateScale(12),
+    paddingVertical: moderateScale(4),
   },
   headerTitle: {
     fontSize: rf(20),

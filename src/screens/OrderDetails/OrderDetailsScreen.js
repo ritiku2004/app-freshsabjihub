@@ -179,7 +179,11 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
       }
 
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(downloadRes.uri);
+        await Sharing.shareAsync(downloadRes.uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'Share or Save Invoice',
+          UTI: 'com.adobe.pdf'
+        });
       } else {
         Alert.alert("Success", "Invoice downloaded.");
       }

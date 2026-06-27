@@ -137,10 +137,10 @@ export const HomeScreen = ({ navigation }) => {
             >
               <View>
                 <Text style={{ fontSize: rf(11), fontWeight: '800', color: '#DCFCE7', textTransform: 'uppercase', letterSpacing: 0.3 }}>
-                  {serviceAvailable ? 'Deliver in' : 'Service'}
+                  {!activeAddress ? 'Set Your' : serviceAvailable ? 'Deliver in' : 'Service'}
                 </Text>
                 <Text style={{ fontSize: rf(20), fontWeight: '900', color: theme.colors.white, marginTop: moderateScale(1) }}>
-                  {serviceAvailable ? formatETA(deliveryETA) : 'Out of Zone'}
+                  {!activeAddress ? 'Location' : serviceAvailable ? formatETA(deliveryETA) : 'Out of Zone'}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: moderateScale(4) }}>
                   <Text style={{ fontSize: rf(13), fontWeight: '700', color: theme.colors.white, maxWidth: 220 }} numberOfLines={1}>
@@ -244,10 +244,10 @@ export const HomeScreen = ({ navigation }) => {
             >
               <View>
                 <Text style={{ fontSize: rf(11), fontWeight: '800', color: '#DCFCE7', textTransform: 'uppercase', letterSpacing: 0.3 }}>
-                  {serviceAvailable ? 'Deliver in' : 'Service'}
+                  {!activeAddress ? 'Set Your' : serviceAvailable ? 'Deliver in' : 'Service'}
                 </Text>
                 <Text style={{ fontSize: rf(20), fontWeight: '900', color: theme.colors.white, marginTop: moderateScale(1) }}>
-                  {serviceAvailable ? formatETA(deliveryETA) : 'Out of Zone'}
+                  {!activeAddress ? 'Location' : serviceAvailable ? formatETA(deliveryETA) : 'Out of Zone'}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: moderateScale(4) }}>
                   <Text style={{ fontSize: rf(13), fontWeight: '700', color: theme.colors.white, maxWidth: 220 }} numberOfLines={1}>

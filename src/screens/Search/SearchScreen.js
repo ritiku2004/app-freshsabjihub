@@ -243,10 +243,10 @@ export const SearchScreen = ({ route, navigation }) => {
           >
             <View>
               <Text style={{ fontSize: rf(11), fontWeight: '800', color: '#DCFCE7', textTransform: 'uppercase', letterSpacing: 0.3 }}>
-                Deliver in
+                {!activeAddress ? 'Set Your' : 'Deliver in'}
               </Text>
               <Text style={{ fontSize: rf(20), fontWeight: '900', color: theme.colors.white, marginTop: moderateScale(1) }}>
-                {formatETA(deliveryETA)}
+                {!activeAddress ? 'Location' : formatETA(deliveryETA)}
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: moderateScale(4) }}>
                 <Text style={{ fontSize: rf(13), fontWeight: '700', color: theme.colors.white, maxWidth: 220 }} numberOfLines={1}>
