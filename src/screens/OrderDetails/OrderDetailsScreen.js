@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import * as Print from 'expo-print';
 import { ArrowLeft, CheckCircle2, Circle, Download } from 'lucide-react-native';
 import { theme } from '../../theme';
 import { api } from '../../services/api';
@@ -171,15 +172,24 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
       const url = `${API_BASE_URL}/user/orders/${orderIdentifier}/invoice`;
       const headers = api.getHeaders();
       const fileUri = FileSystem.documentDirectory + `Invoice_${order.order_number || orderIdentifier}.pdf`;
+      const response = await fetch(url, { headers });
       
-      const downloadRes = await FileSystem.downloadAsync(url, fileUri, { headers });
-      
-      if (downloadRes.status !== 200) {
-        throw new Error('Failed to download from server');
+      if (!response.ok) {
+        throw new Error('Failed to fetch invoice HTML from server');
       }
 
+      const data = await response.json();
+      if (!data.success || !data.html) {
+        throw new Error('Invalid invoice data received');
+      }
+
+      const { base64 } = await Print.printToFileAsync({ html: data.html, base64: true });
+      
+      const newUri = FileSystem.documentDirectory + `Invoice_${order.order_number || orderIdentifier}.pdf`;
+      await FileSystem.writeAsStringAsync(newUri, base64, { encoding: FileSystem.EncodingType.Base64 });
+
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(downloadRes.uri, {
+        await Sharing.shareAsync(newUri, {
           mimeType: 'application/pdf',
           dialogTitle: 'Share or Save Invoice',
           UTI: 'com.adobe.pdf'
