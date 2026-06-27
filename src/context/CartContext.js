@@ -286,6 +286,9 @@ export const CartProvider = ({ children }) => {
   const deliveryFee = pricing.deliveryFee || 0;
   const handlingFee = pricing.handlingFee || 0;
   const taxAmount = pricing.taxAmount || 0;
+  const globalDiscountAmount = pricing.globalDiscountAmount || 0;
+  const globalDiscountPercentage = pricing.globalDiscountPercentage || 0;
+  const globalDiscountThreshold = pricing.globalDiscountThreshold || 0;
   const cartGrandTotal = pricing.grandTotal || 0;
   const freeDeliveryThreshold = pricing.freeDeliveryThreshold || 0;
   const freeHandlingThreshold = pricing.freeHandlingThreshold || 0;
@@ -301,6 +304,9 @@ export const CartProvider = ({ children }) => {
         deliveryFee,
         handlingFee,
         taxAmount,
+        globalDiscountAmount,
+        globalDiscountPercentage,
+        globalDiscountThreshold,
         cartGrandTotal,
         freeDeliveryThreshold,
         freeHandlingThreshold,

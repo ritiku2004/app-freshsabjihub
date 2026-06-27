@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { api, setApiAuthToken } from '../services/api';
+import { api, setApiAuthToken, AuthError } from '../services/api';
 import { calculateDeliveryETA } from '../services/distanceService';
 import { registerForPushNotificationsAsync } from '../services/notificationHelper';
 import { NotificationContext } from './NotificationContext';
@@ -118,6 +118,17 @@ export const AuthProvider = ({ children }) => {
               await AsyncStorage.setItem(ADDRESSES_KEY, JSON.stringify(loadedAddresses));
             }
           } catch (err) {
+            if (err instanceof AuthError) {
+              // Token is expired — wipe session and bail out; user must re-login
+              console.warn('[AuthContext] Token expired on startup — logging out.');
+              await AsyncStorage.multiRemove([USER_KEY, TOKEN_KEY, ADDRESSES_KEY, ACTIVE_ADDRESS_KEY]);
+              setApiAuthToken(null);
+              setIsAuthenticated(false);
+              setUser(null);
+              setToken(null);
+              setLoading(false);
+              return;
+            }
             console.error('Failed to sync addresses on startup:', err);
           }
         }

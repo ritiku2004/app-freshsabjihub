@@ -7,10 +7,13 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  Linking
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, CheckCircle2, Circle } from 'lucide-react-native';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+import { ArrowLeft, CheckCircle2, Circle, Download } from 'lucide-react-native';
 import { theme } from '../../theme';
 import { api } from '../../services/api';
 import { API_BASE_URL } from '../../config/env';
@@ -22,6 +25,7 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
   const { order: initialOrder, orderId } = route.params || {};
   const [order, setOrder] = useState(initialOrder);
   const [loading, setLoading] = useState(!initialOrder);
+  const [downloading, setDownloading] = useState(false);
   const insets = useSafeAreaInsets();
   const { user } = useContext(AuthContext);
 
@@ -159,6 +163,34 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
   const tipAmount = order.tipAmount || 0;
   const discountAmount = order.discountAmount || 0;
 
+  const handleDownloadInvoice = async () => {
+    if (downloading) return;
+    try {
+      setDownloading(true);
+      const orderIdentifier = order.dbId || order.id;
+      const url = `${API_BASE_URL}/user/orders/${orderIdentifier}/invoice`;
+      const headers = api.getHeaders();
+      const fileUri = FileSystem.documentDirectory + `Invoice_${order.order_number || orderIdentifier}.pdf`;
+      
+      const downloadRes = await FileSystem.downloadAsync(url, fileUri, { headers });
+      
+      if (downloadRes.status !== 200) {
+        throw new Error('Failed to download from server');
+      }
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(downloadRes.uri);
+      } else {
+        Alert.alert("Success", "Invoice downloaded.");
+      }
+    } catch (err) {
+      console.error("Failed to download invoice", err);
+      Alert.alert("Error", "Could not download the invoice. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Animated Gradient Header */}
@@ -172,7 +204,7 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primary, theme.colors.secondary]}
           locations={[0, 0.55, 1]}
-          style={styles.header}
+          style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
         >
           <View style={styles.headerLeft}>
             <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
@@ -180,6 +212,17 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Order Details</Text>
           </View>
+          
+          {order.status !== 'Pending Payment' && (
+            <TouchableOpacity onPress={handleDownloadInvoice} disabled={downloading} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
+              {downloading ? (
+                <ActivityIndicator size="small" color={theme.colors.white} style={{ marginRight: 6 }} />
+              ) : (
+                <Download size={16} color={theme.colors.white} style={{ marginRight: 6 }} />
+              )}
+              <Text style={{ color: theme.colors.white, fontSize: 12, fontWeight: '600' }}>{downloading ? 'Downloading...' : 'Invoice'}</Text>
+            </TouchableOpacity>
+          )}
         </LinearGradient>
       </Animated.View>
 

@@ -30,7 +30,7 @@ import { moderateScale, rf } from '../../utils/responsive';
 
 export const CheckoutScreen = ({ route, navigation }) => {
   const { user, activeAddress, activeShop } = useContext(AuthContext);
-  const { cartItems, cartSubtotal, cartGrandTotal, deliveryFee, handlingFee, taxAmount, clearCart, fetchCart } = useContext(CartContext);
+  const { cartItems, cartSubtotal, cartGrandTotal, deliveryFee, handlingFee, taxAmount, globalDiscountAmount, globalDiscountPercentage, clearCart, fetchCart } = useContext(CartContext);
   const insets = useSafeAreaInsets();
 
   const deliveryTip = route.params?.deliveryTip || 0;
@@ -233,7 +233,8 @@ export const CheckoutScreen = ({ route, navigation }) => {
   const totalQuantity = displayItems.reduce((acc, item) => acc + item.quantity, 0);
   const donationAmount = 0;
   const displayTax = isRetry ? (retryOrder.tax_amount || retryOrder.taxAmount || 0) : taxAmount;
-  const itemsTotal = isRetry ? (displayGrandTotal - displayDeliveryFee - displayHandlingFee - displayTip - displayTax) : cartSubtotal;
+  const displayGlobalDiscount = isRetry ? (retryOrder.global_discount_amount || 0) : (globalDiscountAmount || 0);
+  const itemsTotal = isRetry ? (displayGrandTotal - displayDeliveryFee - displayHandlingFee - displayTip - displayTax + displayGlobalDiscount) : cartSubtotal;
   const grandTotal = displayGrandTotal;
 
   const handlePlaceOrder = async () => {
@@ -258,7 +259,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
           const rawPhone = user?.phone_number || retryOrder.address?.receiverMobile || '';
           const cleanedPhone = rawPhone.replace(/\D/g, '');
           const finalPhone = cleanedPhone.length > 10 ? cleanedPhone.slice(-10) : (cleanedPhone || '9999999999');
-          const finalEmail = (user?.email && user.email.includes('@')) ? user.email.trim() : 'customer@freshsabjihub.com';
+          const finalEmail = (user?.email && user.email.includes('@')) ? user.email.trim() : 'support@freshsabjihub.com';
           const finalName = `${retryOrder.address?.receiverName || user?.first_name || ''}`.trim() || 'Customer';
 
           navigation.navigate('PaymentWebView', {
@@ -304,7 +305,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
           const rawPhone = user?.phone_number || displayAddress?.receiverMobile || '';
           const cleanedPhone = rawPhone.replace(/\D/g, '');
           const finalPhone = cleanedPhone.length > 10 ? cleanedPhone.slice(-10) : (cleanedPhone || '9999999999');
-          const finalEmail = (user?.email && user.email.includes('@')) ? user.email.trim() : 'customer@freshsabjihub.com';
+          const finalEmail = (user?.email && user.email.includes('@')) ? user.email.trim() : 'support@freshsabjihub.com';
           const finalName = `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'Customer';
 
           navigation.navigate('PaymentWebView', {
@@ -709,6 +710,15 @@ export const CheckoutScreen = ({ route, navigation }) => {
               {displayDeliveryFee === 0 ? 'FREE' : `₹${displayDeliveryFee}`}
             </Text>
           </View>
+
+          {displayGlobalDiscount > 0 && (
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Offers {globalDiscountPercentage > 0 ? `(${globalDiscountPercentage}%)` : ''}</Text>
+              <Text style={[styles.billValue, { color: theme.colors.success }]}>
+                - ₹{displayGlobalDiscount}
+              </Text>
+            </View>
+          )}
 
           {displayTip > 0 && (
             <View style={styles.billRow}>

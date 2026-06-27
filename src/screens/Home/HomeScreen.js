@@ -15,7 +15,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronDown, User, Search, Mic, Bell } from 'lucide-react-native';
+import { ChevronDown, User, Search, Mic, Bell, Flame, Tag } from 'lucide-react-native';
 import { theme } from '../../theme';
 import { AuthContext } from '../../context/AuthContext';
 import { CartContext } from '../../context/CartContext';
@@ -86,6 +86,9 @@ export const HomeScreen = ({ navigation }) => {
   );
   
   const allProducts = productsData?.products || [];
+
+  const trendingProducts = allProducts.filter(p => p.type === 'trending');
+  const bestDealProducts = allProducts.filter(p => p.type === 'best_deal');
 
   const isCategoriesLoading = activeShop?.id ? (isLoadingCategories || isFetchingCategories || isErrorCategories) : false;
   const isProductsLoading = activeShop?.id ? (isLoadingProducts || isFetchingProducts || isErrorProducts) : false;
@@ -363,6 +366,66 @@ export const HomeScreen = ({ navigation }) => {
               </View>
             )}
 
+
+          {/* Trending Now Section */}
+            {trendingProducts.length > 0 && (
+              <View>
+                <View style={styles.trendingHeader}>
+                  <Text style={styles.sectionTitle}>Trending Now</Text>
+                  <View style={styles.trendingBadge}>
+                    <Flame size={10} color="#EA580C" style={{ marginRight: 3 }} />
+                    <Text style={styles.trendingBadgeText}>Hot</Text>
+                  </View>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.productsHorizontalScroll}
+                >
+                  {trendingProducts.map((prod) => (
+                    <View key={prod.id} style={styles.horizontalCardWrapper}>
+                      <ProductCard
+                        product={prod}
+                        cartQuantity={getCartQuantity(prod.id)}
+                        onPress={() => navigation.navigate('ProductDetails', { productId: prod.id })}
+                        onIncrement={() => addToCart(prod, activeShop.id)}
+                        onDecrement={() => updateQuantity(getCartItemId(prod.id), getCartQuantity(prod.id) - 1)}
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Best Deals Section */}
+            {bestDealProducts.length > 0 && (
+              <View>
+                <View style={styles.bestDealHeader}>
+                  <Text style={styles.sectionTitle}>Best Deals</Text>
+                  <View style={styles.bestDealBadge}>
+                    <Tag size={10} color="#059669" style={{ marginRight: 3 }} />
+                    <Text style={styles.bestDealBadgeText}>Savings</Text>
+                  </View>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.productsHorizontalScroll}
+                >
+                  {bestDealProducts.map((prod) => (
+                    <View key={prod.id} style={styles.horizontalCardWrapper}>
+                      <ProductCard
+                        product={prod}
+                        cartQuantity={getCartQuantity(prod.id)}
+                        onPress={() => navigation.navigate('ProductDetails', { productId: prod.id })}
+                        onIncrement={() => addToCart(prod, activeShop.id)}
+                        onDecrement={() => updateQuantity(getCartItemId(prod.id), getCartQuantity(prod.id) - 1)}
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
 
         {categoriesWithProducts.map((cat, index) => (
             <React.Fragment key={cat.id}>

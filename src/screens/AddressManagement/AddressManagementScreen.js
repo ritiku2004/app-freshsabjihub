@@ -432,21 +432,24 @@ export const AddressManagementScreen = ({ navigation }) => {
             ))}
           </View>
           <AppInput
+            label="Receiver's Full Name *"
             value={receiverName}
             onChangeText={setReceiverName}
-            placeholder="Receiver's Full Name"
+            placeholder="e.g. John Doe"
             containerStyle={styles.input}
           />
  
           <AppInput
+            label="Receiver's Mobile Number *"
             value={receiverMobile}
             onChangeText={(txt) => setReceiverMobile(txt.replace(/[^0-9]/g, ''))}
-            placeholder="Receiver's Mobile Number"
+            placeholder="10-digit mobile number"
             keyboardType="numeric"
             maxLength={10}
             containerStyle={styles.input}
           />
  
+          <Text style={{ fontSize: moderateScale(13), fontWeight: '600', color: theme.colors.textPrimary, marginBottom: moderateScale(6) }}>City *</Text>
           <TouchableOpacity
             style={styles.pickerSelector}
             onPress={() => setShowCityPicker(!showCityPicker)}
@@ -486,26 +489,83 @@ export const AddressManagementScreen = ({ navigation }) => {
           )}
  
           <AppInput
+            label="Area / Colony / Sector *"
             value={area}
             onChangeText={(txt) => { isTyping.current = true; setArea(txt); }}
-            placeholder="Area / Colony / Sector"
+            placeholder="e.g. Bapu Nagar"
             containerStyle={styles.input}
           />
  
           <AppInput
+            label="House No. / Building / Floor *"
             value={flatNo}
             onChangeText={setFlatNo}
-            placeholder="House No. / Building / Floor"
+            placeholder="e.g. Flat 101, A-Wing"
             containerStyle={styles.input}
           />
  
           <AppInput
+            label="Nearby Landmark"
             value={landmark}
             onChangeText={(txt) => { isTyping.current = true; setLandmark(txt); }}
-            placeholder="Nearby Landmark (e.g. Near Mall)"
+            placeholder="e.g. Near City Mall"
             containerStyle={styles.input}
           />
 
+          {/* My Location Button */}
+          <TouchableOpacity 
+            style={{ 
+              marginBottom: moderateScale(12),
+              width: '100%',
+              backgroundColor: '#ecfdf5', 
+              paddingHorizontal: moderateScale(16), 
+              paddingVertical: moderateScale(10), 
+              borderRadius: moderateScale(8), 
+              borderStyle: 'dashed',
+              borderWidth: 1, 
+              borderColor: theme.colors.primary, 
+              flexDirection: 'row', 
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            onPress={async () => {
+              setIsProcessing(true);
+              try {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                  Alert.alert('Permission Denied', 'Allow location access to use this feature.');
+                  setIsProcessing(false);
+                  return;
+                }
+                const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+                const lat = location.coords.latitude;
+                const lon = location.coords.longitude;
+                setLatitude(lat);
+                setLongitude(lon);
+                
+                if (webviewRef.current) {
+                  webviewRef.current.injectJavaScript(`window.setCenter(${lat}, ${lon}, 13); true;`);
+                }
+
+                const geocode = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
+                if (geocode && geocode.length > 0) {
+                  const place = geocode[0];
+                  if (!area) setArea(place.street || place.name || '');
+                  if (!cityName) setCityName(place.city || place.subregion || '');
+                  if (!landmark) setLandmark(place.district || '');
+                }
+              } catch (e) {
+                Alert.alert('Error', 'Failed to get current location.');
+              }
+              setIsProcessing(false);
+            }}
+          >
+            <Navigation size={16} color={theme.colors.primary} />
+            <Text style={{ color: theme.colors.primary, fontWeight: 'bold', marginLeft: moderateScale(8), fontSize: rf(13) }}>Use Current Location</Text>
+          </TouchableOpacity>
+
+          <Text style={{ fontSize: moderateScale(14), fontWeight: '700', color: theme.colors.textPrimary, marginTop: moderateScale(10), marginBottom: moderateScale(10) }}>Select your exact delivery location *</Text>
+          
           {/* Real Map Inline */}
           <View style={{ height: moderateScale(200), width: '100%', borderRadius: moderateScale(12), overflow: 'hidden', marginBottom: theme.spacing.md, borderWidth: 1, borderColor: theme.colors.border }}>
             <WebView
@@ -527,44 +587,7 @@ export const AddressManagementScreen = ({ navigation }) => {
               showsHorizontalScrollIndicator={false}
             />
             
-            {/* My Location Button */}
-            <TouchableOpacity 
-              style={{ position: 'absolute', bottom: 10, right: 10, backgroundColor: theme.colors.white, paddingHorizontal: moderateScale(12), paddingVertical: moderateScale(8), borderRadius: moderateScale(20), elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, flexDirection: 'row', alignItems: 'center' }}
-              onPress={async () => {
-                setIsProcessing(true);
-                try {
-                  const { status } = await Location.requestForegroundPermissionsAsync();
-                  if (status !== 'granted') {
-                    Alert.alert('Permission Denied', 'Allow location access to use this feature.');
-                    setIsProcessing(false);
-                    return;
-                  }
-                  const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-                  const lat = location.coords.latitude;
-                  const lon = location.coords.longitude;
-                  setLatitude(lat);
-                  setLongitude(lon);
-                  
-                  if (webviewRef.current) {
-                    webviewRef.current.injectJavaScript(`window.setCenter(${lat}, ${lon}, 13); true;`);
-                  }
 
-                  const geocode = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
-                  if (geocode && geocode.length > 0) {
-                    const place = geocode[0];
-                    if (!area) setArea(place.street || place.name || '');
-                    if (!cityName) setCityName(place.city || place.subregion || '');
-                    if (!landmark) setLandmark(place.district || '');
-                  }
-                } catch (e) {
-                  Alert.alert('Error', 'Failed to get current location.');
-                }
-                setIsProcessing(false);
-              }}
-            >
-              <Navigation size={16} color={theme.colors.primary} />
-              <Text style={{ color: theme.colors.primary, fontWeight: 'bold', marginLeft: moderateScale(6), fontSize: rf(12) }}>Current Location</Text>
-            </TouchableOpacity>
           </View>
  
           <AppButton

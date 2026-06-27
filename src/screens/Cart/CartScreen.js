@@ -27,6 +27,8 @@ export const CartScreen = ({ navigation }) => {
     handlingFee,
     taxAmount,
     cartGrandTotal,
+    globalDiscountAmount,
+    globalDiscountPercentage,
     freeDeliveryThreshold,
     freeHandlingThreshold,
     deliveryDistanceKm,
@@ -357,6 +359,13 @@ export const CartScreen = ({ navigation }) => {
             <View style={styles.billRow}>
               <Text style={styles.billLabel}>Product Discount</Text>
               <Text style={[styles.billValue, styles.billValueDiscount]}>-₹{cartSavings}</Text>
+            </View>
+          )}
+
+          {globalDiscountAmount > 0 && (
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Offers {globalDiscountPercentage > 0 ? `(${globalDiscountPercentage}%)` : ''}</Text>
+              <Text style={[styles.billValue, styles.billValueDiscount]}>-₹{globalDiscountAmount}</Text>
             </View>
           )}
 

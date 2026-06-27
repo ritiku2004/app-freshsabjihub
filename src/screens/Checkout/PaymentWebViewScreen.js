@@ -29,7 +29,7 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
   const rawPhone = userPhone || '';
   const cleanedPhone = String(rawPhone).replace(/\D/g, '');
   const finalPhone = cleanedPhone.length > 10 ? cleanedPhone.slice(-10) : (cleanedPhone || '9999999999');
-  const finalEmail = (userEmail && String(userEmail).includes('@')) ? String(userEmail).trim() : 'customer@freshsabjihub.com';
+  const finalEmail = (userEmail && String(userEmail).includes('@')) ? String(userEmail).trim() : 'support@freshsabjihub.com';
   const finalName = (userName && String(userName).trim()) ? String(userName).trim() : 'Customer';
 
   // Map frontend payment method keys to Razorpay checkout configuration

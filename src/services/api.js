@@ -6,6 +6,15 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let authToken = null;
 
+// Thrown specifically when the server returns 401 (token expired / invalid)
+export class AuthError extends Error {
+  constructor(message = 'Session expired') {
+    super(message);
+    this.name = 'AuthError';
+    this.isAuthError = true;
+  }
+}
+
 export const setApiAuthToken = (token) => {
   authToken = token;
 };
@@ -16,6 +25,18 @@ const getHeaders = () => {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
   return headers;
+};
+
+// Centralized fetch that auto-throws AuthError on 401
+const authenticatedFetch = async (url, options = {}) => {
+  const response = await fetch(url, {
+    ...options,
+    headers: { ...getHeaders(), ...(options.headers || {}) },
+  });
+  if (response.status === 401) {
+    throw new AuthError('Session expired. Please log in again.');
+  }
+  return response;
 };
 
 export const api = {
@@ -63,9 +84,7 @@ export const api = {
   // Get user profile
   getProfile: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/auth/profile`, {
-        headers: getHeaders(),
-      });
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/auth/profile`);
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
         throw new Error(errData.message || 'Failed to fetch profile');
@@ -81,9 +100,8 @@ export const api = {
   // Update user profile
   updateProfile: async (name, email, phoneNumber, profilePictureUrl) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/auth/profile`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/auth/profile`, {
         method: 'PUT',
-        headers: getHeaders(),
         body: JSON.stringify({ name, email, phone_number: phoneNumber, profile_picture_url: profilePictureUrl }),
       });
       if (!response.ok) {
@@ -204,6 +222,7 @@ export const api = {
         unit: `${p.quantity} ${p.quantity_type}`,
         stock: p.is_available ? 50 : 0,
         rating: 4.5, // Mock rating
+        type: p.type || 'general',
       }));
 
       // Filter by Category
@@ -260,27 +279,19 @@ export const api = {
     }
   },
 
-  // Fetch User Addresses
+  // Fetch User Addresses — throws AuthError on 401 so caller can auto-logout
   fetchAddresses: async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/user/auth/addresses`, {
-        headers: getHeaders(),
-      });
-      if (!response.ok) throw new Error('Failed to fetch addresses');
-      const data = await response.json();
-      return data.data || [];
-    } catch (error) {
-      console.error('Error fetching addresses:', error);
-      return [];
-    }
+    const response = await authenticatedFetch(`${API_BASE_URL}/user/auth/addresses`);
+    if (!response.ok) throw new Error('Failed to fetch addresses');
+    const data = await response.json();
+    return data.data || [];
   },
 
   // Save User Address
   saveAddress: async (addressData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/auth/addresses`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/auth/addresses`, {
         method: 'POST',
-        headers: getHeaders(),
         body: JSON.stringify(addressData),
       });
       if (!response.ok) throw new Error('Failed to save address');
@@ -295,9 +306,8 @@ export const api = {
   // Delete User Address
   deleteAddress: async (addressId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/auth/addresses/${addressId}`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/auth/addresses/${addressId}`, {
         method: 'DELETE',
-        headers: getHeaders(),
       });
       if (!response.ok) throw new Error('Failed to delete address');
       const data = await response.json();
@@ -311,9 +321,8 @@ export const api = {
   // Submit order checkout
   submitOrder: async (orderData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/orders`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/orders`, {
         method: 'POST',
-        headers: getHeaders(),
         body: JSON.stringify(orderData),
       });
 
@@ -336,9 +345,7 @@ export const api = {
   // Fetch all user orders from backend
   getUserOrders: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/orders`, {
-        headers: getHeaders(),
-      });
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/orders`);
       if (!response.ok) throw new Error('Failed to fetch orders');
       const data = await response.json();
       return data.data || [];
@@ -409,9 +416,8 @@ export const api = {
   // Register push notifications device token
   registerDeviceToken: async (token) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/token/register`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/token/register`, {
         method: 'POST',
-        headers: getHeaders(),
         body: JSON.stringify({ token }),
       });
       if (!response.ok) {
@@ -444,9 +450,8 @@ export const api = {
 
   submitSupportQuery: async (subject, description, email, name, phone) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/support/query`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/support/query`, {
         method: 'POST',
-        headers: getHeaders(),
         body: JSON.stringify({ subject, description, email, name, phone }),
       });
       if (!response.ok) {
@@ -462,9 +467,8 @@ export const api = {
 
   retryPayment: async (orderId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/orders/${orderId}/retry`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/orders/${orderId}/retry`, {
         method: 'POST',
-        headers: getHeaders(),
         body: JSON.stringify({}),
       });
       if (!response.ok) {
@@ -491,27 +495,19 @@ export const api = {
     }
   },
 
-  // Fetch user notifications from backend
+  // Fetch user notifications from backend — throws AuthError on 401 so caller can auto-logout
   fetchNotifications: async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/user/notifications`, {
-        headers: getHeaders(),
-      });
-      if (!response.ok) throw new Error('Failed to fetch notifications');
-      const data = await response.json();
-      return data.data || [];
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      return [];
-    }
+    const response = await authenticatedFetch(`${API_BASE_URL}/user/notifications`);
+    if (!response.ok) throw new Error('Failed to fetch notifications');
+    const data = await response.json();
+    return data.data || [];
   },
 
   // Mark notification as read on backend
   markNotificationRead: async (id) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/notifications/mark-read/${id}`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/notifications/mark-read/${id}`, {
         method: 'PUT',
-        headers: getHeaders(),
       });
       if (!response.ok) throw new Error('Failed to mark notification as read');
       return await response.json();
@@ -524,9 +520,8 @@ export const api = {
   // Mark all user notifications as read on backend
   markAllNotificationsRead: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/notifications/mark-all-read`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/notifications/mark-all-read`, {
         method: 'PUT',
-        headers: getHeaders(),
       });
       if (!response.ok) throw new Error('Failed to mark all notifications as read');
       return await response.json();
@@ -539,9 +534,8 @@ export const api = {
   // Clear all user notifications on backend
   clearNotifications: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/notifications`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/user/notifications`, {
         method: 'DELETE',
-        headers: getHeaders(),
       });
       if (!response.ok) throw new Error('Failed to clear notifications');
       return await response.json();

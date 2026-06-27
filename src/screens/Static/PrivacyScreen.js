@@ -71,7 +71,9 @@ export const PrivacyScreen = ({ navigation }) => {
               <Text style={styles.cardTitle}>2. Information We Collect</Text>
             </View>
             <Text style={styles.cardBody}>
-              We collect information you voluntarily provide (name, email, phone number, address) when setting up your profile or checking out. We also gather automated device telemetry (IP address, operating system, unique identifiers) to help improve system stability.
+              We collect information you voluntarily provide (name, email, phone number, address) when setting up your profile or checking out. 
+              {'\n\n'}<Text style={{fontWeight: 'bold'}}>Location Information:</Text> We request access to your device's precise location (GPS) to accurately deliver your groceries and autofill your address. Location data is only used during active order fulfillment.
+              {'\n\n'}<Text style={{fontWeight: 'bold'}}>Notifications:</Text> We ask for notification permissions to send you real-time updates regarding your order status and delivery ETA.
             </Text>
           </View>
 
@@ -121,7 +123,7 @@ export const PrivacyScreen = ({ navigation }) => {
               <Text style={styles.cardTitle}>6. Your Rights</Text>
             </View>
             <Text style={styles.cardBody}>
-              You hold the right to view, modify, or delete your personal details. You can update your profile parameters or request account deletion at any time directly through the Profile panel in the app.
+              You hold the right to view, modify, or delete your personal details. You can update your profile parameters, address, and preferences, or request account deletion at any time directly through the Profile panel in the app. Data updates are synced immediately across both our mobile app and website.
             </Text>
           </View>
 
@@ -135,12 +137,12 @@ export const PrivacyScreen = ({ navigation }) => {
               Have questions, concerns, or requests regarding this policy? Reach out directly to our Data Protection Officer:
             </Text>
             <TouchableOpacity 
-              onPress={() => Linking.openURL('mailto:privacy@freshsabjihub.com')}
+              onPress={() => Linking.openURL('mailto:security@freshsabjihub.com')}
               style={styles.emailLinkButton}
               activeOpacity={0.7}
             >
               <Mail size={16} color={theme.colors.primary} />
-              <Text style={styles.emailLinkText}>privacy@freshsabjihub.com</Text>
+              <Text style={styles.emailLinkText}>security@freshsabjihub.com</Text>
             </TouchableOpacity>
           </View>
 

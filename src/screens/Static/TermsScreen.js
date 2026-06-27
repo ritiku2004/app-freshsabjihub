@@ -79,10 +79,10 @@ export const TermsScreen = ({ navigation }) => {
           <View style={styles.termsCard}>
             <View style={styles.cardHeader}>
               <Smartphone size={20} color={theme.colors.primary} />
-              <Text style={styles.cardTitle}>3. Use of the App</Text>
+              <Text style={styles.cardTitle}>3. Use of the App & Permissions</Text>
             </View>
             <Text style={styles.cardBody}>
-              You agree to use the App only for lawful, personal purposes. Violations or attempts to violate app security, including accessing unauthorized accounts or data scraping, will result in immediate termination.
+              You agree to use the App only for lawful purposes. By using the app, you grant permission for location access (used solely for delivery accuracy) and notifications (used for order updates). Violations of security or data scraping will result in termination.
             </Text>
           </View>
 

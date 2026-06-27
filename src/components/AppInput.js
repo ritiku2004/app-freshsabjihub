@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
+import { View, TextInput, StyleSheet, Text } from 'react-native';
 import { theme } from '../theme';
 import { moderateScale } from '../utils/responsive';
 
@@ -11,12 +11,15 @@ export const AppInput = ({
   secureTextEntry = false,
   keyboardType = 'default',
   maxLength,
+  label,
   style = {},
   containerStyle = {},
   ...props
 }) => {
   return (
-    <View style={[styles.container, containerStyle]}>
+    <View style={[styles.wrapper, containerStyle]}>
+      {label && <Text style={styles.label}>{label}</Text>}
+      <View style={styles.container}>
       {IconComponent && (
         <View style={styles.iconContainer}>
           <IconComponent size={20} color={theme.colors.textSecondary} />
@@ -34,10 +37,20 @@ export const AppInput = ({
         {...props}
       />
     </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    width: '100%',
+  },
+  label: {
+    fontSize: moderateScale(13),
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+    marginBottom: moderateScale(6),
+  },
   container: {
     height: moderateScale(50),
     backgroundColor: theme.colors.cardBackground,

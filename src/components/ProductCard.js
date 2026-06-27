@@ -73,11 +73,7 @@ export const ProductCard = React.memo(({
           {name}
         </Text>
 
-        {/* Delivery Time Placeholder */}
-        <View style={styles.deliveryRow}>
-          <Clock size={12} color="#16A34A" />
-          <Text style={styles.deliveryText}>14 MINS</Text>
-        </View>
+
 
         {/* Discount badge - only shown when there's an actual discount */}
         {hasDiscount && (

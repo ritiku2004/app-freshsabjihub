@@ -169,18 +169,26 @@ export const NotificationProvider = ({ children }) => {
         const key = getStorageKey(userId);
         await AsyncStorage.setItem(key, JSON.stringify(mappedList));
       } catch (err) {
-        console.warn('[NotificationContext] Failed to fetch backend notifications, loading cached:', err);
-        // Fallback to AsyncStorage cache
-        const key = getStorageKey(userId);
-        let stored = await AsyncStorage.getItem(key);
-        let parsed = stored ? JSON.parse(stored) : [];
-        setNotifications(parsed);
+        const isAuthExpired = err && (err.name === 'AuthError' || err.isAuthError);
+        if (isAuthExpired) {
+          // Token expired — AuthContext will handle logout; clear local notifications
+          console.warn('[NotificationContext] Session expired, clearing notifications.');
+          setNotifications([]);
+          seenDedupeKeys.current = new Set();
+        } else {
+          console.warn('[NotificationContext] Failed to fetch backend notifications, loading cached:', err);
+          // Fallback to AsyncStorage cache
+          const key = getStorageKey(userId);
+          let stored = await AsyncStorage.getItem(key);
+          let parsed = stored ? JSON.parse(stored) : [];
+          setNotifications(parsed);
 
-        const newSeen = new Set();
-        parsed.forEach((n) => {
-          if (n.dedupeKey) newSeen.add(n.dedupeKey);
-        });
-        seenDedupeKeys.current = newSeen;
+          const newSeen = new Set();
+          parsed.forEach((n) => {
+            if (n.dedupeKey) newSeen.add(n.dedupeKey);
+          });
+          seenDedupeKeys.current = newSeen;
+        }
       }
     } catch (error) {
       console.error('[NotificationContext] Failed to load notifications:', error);

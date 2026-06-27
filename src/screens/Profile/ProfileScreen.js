@@ -15,6 +15,7 @@ import {
   X,
   Edit2,
   Camera,
+  Package,
 } from 'lucide-react-native';
 import { theme } from '../../theme';
 import { AuthContext } from '../../context/AuthContext';
@@ -342,6 +343,19 @@ export const ProfileScreen = ({ navigation }) => {
 
         {/* Menu list items */}
         <View style={styles.menuContainer}>
+          {/* Order History */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Orders')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuItemLeft}>
+              <Package size={20} color={theme.colors.primary} />
+              <Text style={styles.menuItemText}>Order History</Text>
+            </View>
+            <ChevronRight size={18} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+
           {/* Address Book */}
           <TouchableOpacity
             style={styles.menuItem}
