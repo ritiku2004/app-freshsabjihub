@@ -280,6 +280,8 @@ export const AuthProvider = ({ children }) => {
               title: guestAddr.type || 'Other',
               address_line1: `${guestAddr.flatNo || ''}||${guestAddr.addressLine || ''}`,
               address_line2: guestAddr.landmark || '',
+              city: guestAddr.city || 'City',
+              state: guestAddr.state || 'State',
               latitude: guestAddr.latitude,
               longitude: guestAddr.longitude,
               is_default: false,

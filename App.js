@@ -95,7 +95,7 @@ export default function App() {
             
             {/* Tagline in premium warm color */}
             <Text style={{ fontSize: 13, fontWeight: '700', color: '#FEF3C7', letterSpacing: 0.5, textAlign: 'center', paddingHorizontal: 40, lineHeight: 18 }}>
-              Fresh vegetables & fruits delivered to your doorstep 🥬
+              Fresh vegetables & fruits delivered to your doorstep
             </Text>
           </View>
         </View>

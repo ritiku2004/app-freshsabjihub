@@ -240,6 +240,25 @@ export const api = {
         );
       }
 
+      // Filter by Subcategory
+      if (subcategory && subcategory !== 'All') {
+        filtered = filtered.filter((p) => p.subcategory === subcategory || p.sub_category === subcategory);
+      }
+
+      // Sort
+      if (sortBy === 'price-low-to-high') {
+        filtered = filtered.sort((a, b) => a.discountPrice - b.discountPrice);
+      } else if (sortBy === 'price-high-to-low') {
+        filtered = filtered.sort((a, b) => b.discountPrice - a.discountPrice);
+      } else if (sortBy === 'discount') {
+        // Sort by highest discount percentage first
+        filtered = filtered.sort((a, b) => {
+           const aDisc = Number(a.discount_percentage) || 0;
+           const bDisc = Number(b.discount_percentage) || 0;
+           return bDisc - aDisc;
+        });
+      }
+
       // Pagination
       const startIndex = (page - 1) * limit;
       const paginatedItems = filtered.slice(startIndex, startIndex + limit);

@@ -57,6 +57,7 @@ export const AddressManagementScreen = ({ navigation }) => {
   const [landmark, setLandmark] = useState('');
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
+  const [shops, setShops] = useState([]);
   const webviewRef = React.useRef(null);
   const isTyping = React.useRef(false);
   const [mapVisible, setMapVisible] = useState(false);
@@ -67,8 +68,9 @@ export const AddressManagementScreen = ({ navigation }) => {
   useEffect(() => {
     const loadCities = async () => {
       try {
-        const shops = await api.getShops();
-        const cities = [...new Set(shops.filter(s => s.is_active).map(s => s.city))];
+        const shopsData = await api.getShops();
+        setShops(shopsData);
+        const cities = [...new Set(shopsData.filter(s => s.is_active).map(s => s.city))];
         setAvailableCities(cities);
       } catch (err) {
         console.log('Failed to fetch cities:', err);
@@ -149,8 +151,36 @@ export const AddressManagementScreen = ({ navigation }) => {
         });
 
         window.setCenter = function(lat, lng, zoomLevel) {
-          map.setView([lat, lng], zoomLevel || 13);
+          map.setView([lat, lng], zoomLevel || 13, { animate: false });
           marker.setLatLng([lat, lng]);
+        };
+
+        var circle;
+        window.setCityBounds = function(lat, lng, radius) {
+          if (circle) {
+             circle.remove();
+          }
+          circle = L.circle([lat, lng], {
+            color: '#0f7643',
+            fillColor: '#0f7643',
+            fillOpacity: 0.1,
+            radius: radius,
+            interactive: false
+          }).addTo(map);
+          var bounds = L.latLng(lat, lng).toBounds(radius * 2);
+          map.setMaxBounds(bounds);
+          map.setMinZoom(10);
+          map.setView([lat, lng], 10, { animate: false });
+          marker.setLatLng([lat, lng]);
+        };
+        
+        window.resetBounds = function() {
+          map.setMaxBounds([[-90, -180], [90, 180]]);
+          map.setMinZoom(0);
+          if (circle) {
+             circle.remove();
+             circle = null;
+          }
         };
       </script>
     </body>
@@ -185,6 +215,36 @@ export const AddressManagementScreen = ({ navigation }) => {
   useEffect(() => {
     if (!cityName.trim()) return;
     
+    // Check if we have the shop for this city to set a delivery radius
+    const shop = shops.find(s => s.city && s.city.toLowerCase() === cityName.trim().toLowerCase() && s.is_active);
+    const radius = 15000; // Default 15km
+    
+    if (shop && shop.latitude && shop.longitude) {
+      const lat = Number(shop.latitude);
+      const lng = Number(shop.longitude);
+      setLatitude(lat);
+      setLongitude(lng);
+      
+      if (webviewRef.current) {
+        webviewRef.current.injectJavaScript(`
+          if (window.setCityBounds) {
+            window.setCityBounds(${lat}, ${lng}, ${radius});
+          }
+          true;
+        `);
+      }
+      return;
+    }
+
+    if (webviewRef.current) {
+      webviewRef.current.injectJavaScript(`
+        if (window.resetBounds) {
+          window.resetBounds();
+        }
+        true;
+      `);
+    }
+
     const timeoutId = setTimeout(async () => {
       try {
         const results = await Location.geocodeAsync(cityName.trim());
@@ -242,6 +302,28 @@ export const AddressManagementScreen = ({ navigation }) => {
     if (receiverMobile.trim().length < 10) {
       Alert.alert('Invalid Mobile', 'Please enter a valid 10-digit mobile number.');
       return;
+    }
+
+    // Validate if within delivery radius if shop exists
+    const shop = shops.find(s => s.city && s.city.toLowerCase() === cityName.trim().toLowerCase() && s.is_active);
+    if (shop && shop.latitude && shop.longitude) {
+      const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * (Math.PI / 180);
+        const dLon = (lon2 - lon1) * (Math.PI / 180);
+        const a = 
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+          Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+        return R * c;
+      };
+      
+      const distance = getDistanceFromLatLonInKm(latitude, longitude, Number(shop.latitude), Number(shop.longitude));
+      if (distance > 15) {
+        Alert.alert('Out of Delivery', 'This location is outside our delivery area for this city.');
+        return;
+      }
     }
 
     setIsProcessing(true);
@@ -578,6 +660,27 @@ export const AddressManagementScreen = ({ navigation }) => {
                   if (data.lat && data.lng) {
                     setLatitude(data.lat);
                     setLongitude(data.lng);
+                    
+                    // Validate immediately if out of bounds
+                    const shop = shops.find(s => s.city && s.city.toLowerCase() === cityName.trim().toLowerCase() && s.is_active);
+                    if (shop && shop.latitude && shop.longitude) {
+                      const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+                        const R = 6371;
+                        const dLat = (lat2 - lat1) * (Math.PI / 180);
+                        const dLon = (lon2 - lon1) * (Math.PI / 180);
+                        const a = 
+                          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                          Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+                          Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+                        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+                        return R * c;
+                      };
+                      
+                      const distance = getDistanceFromLatLonInKm(data.lat, data.lng, Number(shop.latitude), Number(shop.longitude));
+                      if (distance > 15) {
+                        Alert.alert('Warning', 'You have selected a location outside the delivery area for this city.');
+                      }
+                    }
                   }
                 } catch (e) {}
               }}

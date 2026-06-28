@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', // Horizontal alignment
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 10, // Keeps indicators on top of FlatList contents
+    zIndex: 1, // Keeps indicators on top of FlatList contents but below sticky headers
   },
   dot: {
     width: moderateScale(6),

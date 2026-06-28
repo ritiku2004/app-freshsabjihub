@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Modal, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, SlidersHorizontal, Info, X, Check } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +24,7 @@ export const CategoryProductsScreen = ({ route, navigation }) => {
   const { categoryId } = route.params || {};
   const { cartItems, addToCart, updateQuantity } = useContext(CartContext);
   const { activeShop } = useContext(AuthContext);
+  const insets = useSafeAreaInsets();
 
   const [selectedSubcategory, setSelectedSubcategory] = useState('All');
   const [sortBy, setSortBy] = useState('default');
@@ -139,6 +141,34 @@ export const CategoryProductsScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </LinearGradient>
 
+      <View style={styles.subcategoriesBar}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.subcategoriesScroll}
+        >
+          {(currentCategory?.subcategories || []).map((sub, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.subcategoryPill,
+                selectedSubcategory === sub ? styles.subcategoryPillActive : null,
+              ]}
+              onPress={() => handleSubcategoryChange(sub)}
+            >
+              <Text
+                style={[
+                  styles.subcategoryText,
+                  selectedSubcategory === sub ? styles.subcategoryTextActive : null,
+                ]}
+              >
+                {sub}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       {/* Products list or Loader */}
       {(isLoading || isFetching) && page === 1 ? (
         <Loader />
@@ -188,7 +218,7 @@ export const CategoryProductsScreen = ({ route, navigation }) => {
         onRequestClose={() => setFilterVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { paddingBottom: Math.max(insets.bottom + theme.spacing.lg, theme.spacing.xxl) }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Sort & Filter</Text>
               <TouchableOpacity onPress={() => setFilterVisible(false)}>

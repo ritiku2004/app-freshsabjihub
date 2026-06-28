@@ -261,13 +261,16 @@ export const NotificationProvider = ({ children }) => {
         );
         return updated;
       });
-
       if (currentUserId) {
-        try {
-          const { api } = require('../services/api');
-          await api.markNotificationRead(id);
-        } catch (e) {
-          console.error('[NotificationContext] Failed to mark read on backend:', e);
+        // Only attempt to mark on backend if the ID is numeric (backend IDs are auto-incrementing integers)
+        // Local notifications generated on the frontend use a random alphanumeric string.
+        if (/^\d+$/.test(String(id))) {
+          try {
+            const { api } = require('../services/api');
+            await api.markNotificationRead(id);
+          } catch (e) {
+            console.error('[NotificationContext] Failed to mark read on backend:', e);
+          }
         }
       }
     },

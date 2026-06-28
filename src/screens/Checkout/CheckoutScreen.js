@@ -59,6 +59,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
 
   const [selectedMethod, setSelectedMethod] = useState('prepaid'); // 'prepaid' (Pay Now) or 'cod' (Cash on Delivery)
   const selectedMethodRef = useRef(selectedMethod);
+  const syncedAddressIdRef = useRef(null);
   
   useEffect(() => {
     selectedMethodRef.current = selectedMethod;
@@ -282,11 +283,36 @@ export const CheckoutScreen = ({ route, navigation }) => {
         return;
       }
 
+      let finalAddressId = displayAddress.id;
+      if (finalAddressId && String(finalAddressId).startsWith('addr')) {
+        try {
+          const backendIdObj = await api.saveAddress({
+            title: displayAddress.type || 'Other',
+            address_line1: `${displayAddress.flatNo || ''}||${displayAddress.addressLine || ''}`,
+            address_line2: displayAddress.landmark || '',
+            city: displayAddress.city || 'City',
+            state: displayAddress.state || 'State',
+            latitude: displayAddress.latitude,
+            longitude: displayAddress.longitude,
+            is_default: false,
+            receiver_name: displayAddress.receiverName || user?.first_name || 'Customer',
+            receiver_mobile: displayAddress.receiverMobile || user?.phone_number || ''
+          });
+          finalAddressId = backendIdObj.id.toString();
+          syncedAddressIdRef.current = finalAddressId;
+        } catch (error) {
+          console.error('Failed to sync local address during checkout', error);
+          setIsProcessing(false);
+          Alert.alert('Error', 'Failed to sync address to server. Please check your connection and try again.');
+          return;
+        }
+      }
+
       const payloadMethod = selectedMethodRef.current === 'prepaid' ? 'ONLINE' : 'COD';
       console.log('[DEBUG] handlePlaceOrder: selectedMethodRef.current =', selectedMethodRef.current, 'payloadMethod =', payloadMethod);
       const orderPayload = {
         shopId: activeShop.id,
-        addressId: displayAddress.id && !String(displayAddress.id).startsWith('addr') ? displayAddress.id : null,
+        addressId: finalAddressId,
         items: displayItems,
         totalAmount: grandTotal,
         tipAmount: displayTip,
@@ -396,7 +422,7 @@ export const CheckoutScreen = ({ route, navigation }) => {
             signal: controller.signal,
             body: JSON.stringify({
               shopId: activeShop.id,
-              addressId: displayAddress.id && !String(displayAddress.id).startsWith('addr') ? displayAddress.id : null,
+              addressId: syncedAddressIdRef.current || (displayAddress.id && !String(displayAddress.id).startsWith('addr') ? displayAddress.id : null),
               items: displayItems,
               totalAmount: grandTotal,
               tipAmount: displayTip,

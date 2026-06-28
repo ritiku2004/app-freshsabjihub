@@ -42,6 +42,13 @@ export const ProductCard = React.memo(({
           </View>
         )}
 
+        {/* Discount badge on Top Left */}
+        {hasDiscount && (
+          <View style={styles.discountBadgeTop}>
+            <Text style={styles.discountBadgeText}>{discountPercent}% OFF</Text>
+          </View>
+        )}
+
         {/* Veg Icon (Bottom Left) */}
         <View style={styles.vegIcon}>
           <View style={styles.vegDot} />
@@ -75,12 +82,7 @@ export const ProductCard = React.memo(({
 
 
 
-        {/* Discount badge - only shown when there's an actual discount */}
-        {hasDiscount && (
-          <Text style={styles.discountText}>
-            {discountPercent}% OFF
-          </Text>
-        )}
+
 
         <View style={styles.priceRow}>
           <Text style={styles.price}>₹{discountPrice || price}</Text>
@@ -208,11 +210,25 @@ const styles = StyleSheet.create({
     color: '#475569',
     marginLeft: moderateScale(4),
   },
-  discountText: {
-    fontSize: rf(11),
+  discountBadgeTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    backgroundColor: '#2563EB',
+    paddingHorizontal: moderateScale(6),
+    paddingVertical: moderateScale(3),
+    borderBottomRightRadius: moderateScale(8),
+    zIndex: 6,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+  },
+  discountBadgeText: {
+    color: '#FFF',
+    fontSize: rf(9),
     fontWeight: '800',
-    color: '#2563EB',
-    marginBottom: moderateScale(4),
   },
   priceRow: {
     flexDirection: 'row',
