@@ -42,12 +42,12 @@ const authenticatedFetch = async (url, options = {}) => {
 export const api = {
   getHeaders,
   // Request OTP from backend
-  sendOtp: async (email) => {
+  sendOtp: async (phone) => {
     try {
       const response = await fetch(`${API_BASE_URL}/user/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ phone }),
       });
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
@@ -62,12 +62,12 @@ export const api = {
   },
 
   // Verify custom OTP
-  verifyOtp: async (email, otp) => {
+  verifyOtp: async (phone, otp) => {
     try {
       const response = await fetch(`${API_BASE_URL}/user/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ phone, otp }),
       });
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));

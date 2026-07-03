@@ -36,7 +36,8 @@
     },
     "plugins": [
       "./withUpiQueries",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-sharing"
     ],
     "extra": {
       "eas": {

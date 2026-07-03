@@ -10,7 +10,7 @@ import styles from './styles';
 import { moderateScale, rf } from '../../utils/responsive';
 
 export const OTPScreen = ({ route, navigation }) => {
-  const { email } = route.params || { email: '' };
+  const { phone } = route.params || { phone: '' };
   const { login } = useContext(AuthContext);
   const [code, setCode] = useState('');
   const [timer, setTimer] = useState(30);
@@ -34,7 +34,7 @@ export const OTPScreen = ({ route, navigation }) => {
 
     try {
       // Validate custom OTP with the backend
-      const response = await api.verifyOtp(email, code);
+      const response = await api.verifyOtp(phone, code);
 
       // Response contains { user, token }.
       const userData = { ...response.user };
@@ -112,7 +112,7 @@ export const OTPScreen = ({ route, navigation }) => {
     setError('');
 
     try {
-      await api.sendOtp(email);
+      await api.sendOtp(phone);
       setTimer(30);
     } catch (err) {
       setError('Failed to resend OTP');
@@ -156,7 +156,7 @@ export const OTPScreen = ({ route, navigation }) => {
                 We have sent a verification code to
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: moderateScale(8) }}>
-                <Text style={styles.phoneText}>{email}</Text>
+                <Text style={styles.phoneText}>{phone}</Text>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: moderateScale(12) }}>
                   <Text style={{ color: theme.colors.primary, fontWeight: 'bold', fontSize: rf(14) }}>Change</Text>
                 </TouchableOpacity>

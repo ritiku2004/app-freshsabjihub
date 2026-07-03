@@ -243,6 +243,7 @@ export const ProfileScreen = ({ navigation }) => {
         ...user,
         ...updatedUser,
         name: editName.trim(), // sync locally
+        email: editEmail.trim() || null, // sync locally
         phone_number: editPhone.trim() || null, // sync locally
       };
       await updateUser(newUserData);
@@ -516,7 +517,7 @@ export const ProfileScreen = ({ navigation }) => {
                 onChangeText={setEditName}
               />
 
-              <Text style={styles.formLabel}>Email Address</Text>
+              <Text style={styles.formLabel}>Email Address (Optional)</Text>
               <TextInput
                 style={styles.formInput}
                 placeholder="Enter your email"

@@ -10,7 +10,7 @@ import { moderateScale } from '../../utils/responsive';
 import { api } from '../../services/api';
 
 export const LoginScreen = ({ route, navigation }) => {
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
 
   React.useEffect(() => {
@@ -25,20 +25,21 @@ export const LoginScreen = ({ route, navigation }) => {
     return unsubscribe;
   }, [navigation, route.params]);
 
-  const validateEmail = (emailStr) => {
-    const re = /\S+@\S+\.\S+/;
-    return re.test(emailStr);
+  const validatePhone = (phoneStr) => {
+    const clean = phoneStr.replace(/[^0-9]/g, '');
+    return clean.length === 10;
   };
 
   const handleSendOTP = async () => {
-    if (!validateEmail(email)) return;
+    if (!validatePhone(phone)) return;
     
     setLoading(true);
     try {
-      await api.sendOtp(email.trim().toLowerCase());
+      const cleanPhone = phone.replace(/[^0-9]/g, '');
+      await api.sendOtp(cleanPhone);
       setLoading(false);
       navigation.navigate('OTP', { 
-        email: email.trim().toLowerCase(),
+        phone: cleanPhone,
         redirectTo: route.params?.redirectTo,
         params: route.params?.params
       });
@@ -48,7 +49,7 @@ export const LoginScreen = ({ route, navigation }) => {
     }
   };
 
-  const isFormValid = validateEmail(email);
+  const isFormValid = validatePhone(phone);
 
   return (
     <View style={styles.container}>
@@ -69,13 +70,13 @@ export const LoginScreen = ({ route, navigation }) => {
 
           {/* Login Card */}
           <View style={styles.formSection}>
-            <Text style={styles.inputLabel}>Enter Email Address</Text>
+            <Text style={styles.inputLabel}>Enter Mobile Number</Text>
             
             <AppInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email address"
-              keyboardType="email-address"
+              value={phone}
+              onChangeText={(txt) => setPhone(txt.replace(/[^0-9]/g, '').slice(0, 10))}
+              placeholder="Enter 10-digit mobile number"
+              keyboardType="phone-pad"
               autoCapitalize="none"
               autoCorrect={false}
               containerStyle={{ marginBottom: moderateScale(16) }}

@@ -1,1 +1,1 @@
-export const API_BASE_URL = 'https://api.freshsabjihub.com/api/v1';
+export const API_BASE_URL = 'http://10.20.242.241:3000/api/v1';
