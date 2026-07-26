@@ -459,12 +459,12 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
         return;
       }
 
-      if (isVerifying) {
-        e.preventDefault();
+      if (e.data.action.type === 'RESET') {
         return;
       }
 
-      if (e.data.action.type === 'RESET') {
+      if (isVerifying) {
+        e.preventDefault();
         return;
       }
 

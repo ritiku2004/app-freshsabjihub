@@ -344,7 +344,9 @@ export const CheckoutScreen = ({ route, navigation }) => {
             userEmail: finalEmail,
             userPhone: finalPhone,
             paymentMethod: selectedMethodRef.current,
-            address: displayAddress
+            address: displayAddress,
+            orderId: result.data.orderId,
+            orderNumber: result.data.orderNumber
           });
         } else {
           // COD Flow
