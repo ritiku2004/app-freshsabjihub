@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ClipboardList, ShoppingCart, RotateCcw, Package, ChevronRight, CheckCircle2, AlertCircle, Clock, Sparkles } from 'lucide-react-native';
+import { ClipboardList, ShoppingCart, RotateCcw, Package, ChevronRight, CheckCircle2, AlertCircle, Clock, Sparkles, Star } from 'lucide-react-native';
 import { theme } from '../../theme';
 import { CartContext } from '../../context/CartContext';
 import { AuthContext } from '../../context/AuthContext';
@@ -69,7 +69,8 @@ export const OrdersScreen = ({ navigation }) => {
               quantity: item.quantity,
               price: Number(item.price),
               image: item.image_url // Fetched from joined products table
-            }))
+            })),
+            rating: order.rating
           };
         });
 
@@ -244,7 +245,15 @@ export const OrdersScreen = ({ navigation }) => {
             {itemsSummary}
           </Text>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: moderateScale(4) }}>
-            <Text style={styles.totalAmountText}>Total Paid: ₹{item.totalAmount}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.totalAmountText}>Total Paid: ₹{item.totalAmount}</Text>
+              {item.rating ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff8e1', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 12, marginLeft: 8 }}>
+                  <Star size={12} color="#ff8f00" fill="#ff8f00" />
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#ff8f00', marginLeft: 4 }}>{item.rating}</Text>
+                </View>
+              ) : null}
+            </View>
             <Text style={styles.deliveryTimeInfo}>
               {status.text === 'Delivered'
                 ? 'Delivered to ' + (item.address?.type || 'Home')

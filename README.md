@@ -1,80 +1,32 @@
-# FreshCart - Grocery Delivery App 🛒
+# FreshSabjiHub Mobile App
 
-FreshCart is a modern, responsive, and cross-platform grocery delivery client application built with React Native and Expo. It offers a premium user experience with smooth navigation, a clean UI system, and an intuitive shopping flow from onboarding to checkout.
+This is the React Native mobile application for FreshSabjiHub customers, built using Expo.
 
-## 🚀 Features
+## Features
+- Seamless grocery shopping experience
+- Location tracking and maps integration
+- Push notifications and sharing functionality
+- Fast and responsive UI with React Navigation
 
-- **Cross-Platform**: Runs natively on iOS, Android, and on the Web.
-- **Modern UI/UX**: Premium aesthetic with custom gradients, soft shadows, flat minimalistic inputs, and `lucide-react-native` iconography.
-- **Authentication Flow**: Includes seamless Onboarding, Login, and OTP Verification mock screens.
-- **Interactive Shopping Flow**:
-  - Home Dashboard with dynamic banners, quick categories, and a sticky search bar.
-  - Interactive Address Management with mock map location picking.
-  - Cart and Checkout system with price calculations.
-  - Order History and live Order Tracking details.
-- **Static Content**: Dedicated pages for Profile management, About Us, Privacy Policy, Terms & Conditions, and Contact Us.
-- **Mock Backend**: Entirely self-contained for prototyping with an extensive mock data service (`src/services/mockData.js`) that simulates API calls, user cart persistence, and product catalogs.
+## Prerequisites
+- Node.js
+- Expo CLI
+- Expo Go app on your physical device, or an iOS Simulator / Android Emulator
 
-## 🛠 Tech Stack
-
-- **Framework**: [React Native](https://reactnative.dev/)
-- **Build Tool**: [Expo](https://expo.dev/) (SDK 50+)
-- **Navigation**: React Navigation V6 (Stack & Bottom Tabs)
-- **Styling**: Vanilla React Native StyleSheet with a central Theme object.
-- **Icons**: `lucide-react-native`
-- **State Management / Storage**: React Context API & Async Storage
-
-## 📂 Project Structure
-
-```text
-src/
-├── components/       # Reusable UI components (AppInput, AppButton, Cards)
-├── context/          # Context API Providers (AuthContext, CartContext)
-├── navigation/       # React Navigation setup (AppNavigator.js)
-├── screens/          # All app screens, grouped by feature
-│   ├── Home/
-│   ├── Cart/
-│   ├── Profile/
-│   ├── AddressManagement/
-│   ├── Static/       # About, Privacy, Terms, Contact
-│   └── ...
-├── services/         # API logic (Currently holding mockData.js)
-└── theme.js          # Centralized design tokens (colors, typography, spacing)
-```
-
-## ⚙️ Prerequisites
-
-Before you begin, ensure you have the following installed on your machine:
-- [Node.js](https://nodejs.org/en/) (v16 or higher)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-- [Expo CLI](https://docs.expo.dev/get-started/installation/)
-
-## 📦 Installation & Setup
-
-1. **Clone or Download the Repository:**
-   Navigate into your project directory:
-   ```bash
-   cd "Grocery client"
-   ```
-
-2. **Install Dependencies:**
+## Setup Instructions
+1. Navigate to the `App` folder.
+2. Install dependencies:
    ```bash
    npm install
    ```
-
-3. **Start the Expo Server:**
+3. Set up necessary environment variables or configurations (e.g., `google-services.json` for Firebase).
+4. Start the Expo development server:
    ```bash
-   npx expo start
+   npm start
    ```
+5. Scan the QR code with the Expo Go app on your phone, or press `a` for Android / `i` for iOS to run on an emulator/simulator.
 
-## 💻 Running the App
-
-After starting the Expo server, you will see a QR code in your terminal. 
-
-- **Run on Web:** Press `w` in the terminal to open the app in your web browser. (Alternatively, run `npm run web`).
-- **Run on Android:** Download the "Expo Go" app from the Google Play Store, open it, and scan the terminal QR code.
-- **Run on iOS:** Download the "Expo Go" app from the App Store. Open your iPhone camera, point it at the QR code, and click the link to open it in Expo Go.
-
-## 🎨 Customization
-
-To change the primary colors, typography sizes, or global styles, edit the `src/theme.js` file. The entire app relies on these design tokens, so changing the `theme.colors.primary` will instantly re-brand the application.
+## Important Information
+- This project utilizes TanStack React Query for robust API data fetching and caching.
+- Always use `expo` commands (e.g., `npx expo start`) instead of plain React Native CLI commands.
+- Location and notification services are deeply integrated using Expo's core libraries.

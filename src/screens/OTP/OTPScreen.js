@@ -153,7 +153,7 @@ export const OTPScreen = ({ route, navigation }) => {
             <View style={styles.titleSection}>
               <Text style={styles.title}>OTP Verification</Text>
               <Text style={styles.subtitle}>
-                We have sent a verification code to
+                We have sent a verification code via WhatsApp to
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: moderateScale(8) }}>
                 <Text style={styles.phoneText}>{phone}</Text>

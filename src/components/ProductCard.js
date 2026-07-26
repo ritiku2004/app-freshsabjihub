@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { Clock } from 'lucide-react-native';
 import { theme } from '../theme';
 import { QuantityControl } from './QuantityControl';
 import { moderateScale, rf } from '../utils/responsive';
+import { formatImageUrl } from '../utils/formatImageUrl';
 
 export const ProductCard = React.memo(({
   product,
@@ -30,9 +32,10 @@ export const ProductCard = React.memo(({
       {/* Product Image Section */}
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: image }}
+          source={{ uri: formatImageUrl(image) }}
           style={styles.image}
-          resizeMode="cover"
+          contentFit="cover"
+          transition={200}
         />
 
         {/* Out of stock overlay */}

@@ -253,9 +253,9 @@ export const api = {
       } else if (sortBy === 'discount') {
         // Sort by highest discount percentage first
         filtered = filtered.sort((a, b) => {
-           const aDisc = Number(a.discount_percentage) || 0;
-           const bDisc = Number(b.discount_percentage) || 0;
-           return bDisc - aDisc;
+          const aDisc = Number(a.discount_percentage) || 0;
+          const bDisc = Number(b.discount_percentage) || 0;
+          return bDisc - aDisc;
         });
       }
 

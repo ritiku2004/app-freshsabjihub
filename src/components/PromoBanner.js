@@ -1,12 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { theme } from '../theme';
 import { moderateScale, rf } from '../utils/responsive';
+import { formatImageUrl } from '../utils/formatImageUrl';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 export const PromoBanner = ({ title, subtitle, description, imageUri, image, backgroundColor, textColor, buttonText, navigation }) => {
-  const source = typeof image === 'string' ? { uri: image } : (image ? image : { uri: imageUri });
+  const resolvedImage = typeof image === 'string' ? image : (image ? image : imageUri);
+  const formattedImage = typeof resolvedImage === 'string' ? formatImageUrl(resolvedImage) : resolvedImage;
+  const source = typeof formattedImage === 'string' ? { uri: formattedImage } : (formattedImage ? formattedImage : null);
   const isHero = !!(source && source.uri && (source.uri.includes('hero_banner') || source.uri.includes('hero6_banner')));
 
   return (
@@ -19,7 +23,8 @@ export const PromoBanner = ({ title, subtitle, description, imageUri, image, bac
             ? { left: moderateScale(-180), width: screenWidth + moderateScale(180) } 
             : { left: 0, width: '100%' }
         ]}
-        resizeMode="cover"
+        contentFit="cover"
+        transition={300}
       />
       <View style={styles.bannerContent}>
         <View style={styles.bannerLeft}>
@@ -28,11 +33,11 @@ export const PromoBanner = ({ title, subtitle, description, imageUri, image, bac
               <Text style={[styles.badgeText, { color: theme.colors.primary }]}>{subtitle}</Text>
             </View>
           ) : null}
-          
+
           <Text style={styles.bannerTitle} numberOfLines={2}>
             {title}
           </Text>
-          
+
           {description ? (
             <Text style={styles.bannerDesc} numberOfLines={2}>
               {description}

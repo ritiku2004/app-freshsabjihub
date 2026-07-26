@@ -19,21 +19,15 @@ export const ContactScreen = ({ navigation }) => {
   };
 
   const handleCall = () => {
-    Linking.openURL('tel:+9118004190099');
+    Linking.openURL('tel:+919102305498');
   };
 
   const handleWhatsApp = () => {
-    Linking.openURL('https://wa.me/9118004190099?text=Hello%20FreshSabjiHub%20Support');
+    Linking.openURL('https://wa.me/919102305498?text=Hello%20FreshSabjiHub%20Support');
   };
 
   const handleMap = () => {
-    const address = '123 Grocery Lane, Fresh Valley, Silicon Valley, CA 94000';
-    const url = Platform.select({
-      ios: `maps:0,0?q=${address}`,
-      android: `geo:0,0?q=${address}`,
-      default: `https://www.google.com/maps/search/?api=1&query=${address}`
-    });
-    Linking.openURL(url);
+    Linking.openURL('https://maps.app.goo.gl/z2pWcYee4dFr5wE47?g_st=awb');
   };
 
   const subjects = [
@@ -145,7 +139,7 @@ export const ContactScreen = ({ navigation }) => {
             <View style={styles.contactDetails}>
               <Text style={styles.contactTitle}>Call Customer Care</Text>
               <Text style={styles.contactSubtitle}>Speak directly with our support team</Text>
-              <Text style={styles.contactValue}>+91 1800-419-0099</Text>
+              <Text style={styles.contactValue}>+91 9102305498</Text>
             </View>
             <ChevronRight size={18} color={theme.colors.textSecondary} />
           </TouchableOpacity>
@@ -178,8 +172,8 @@ export const ContactScreen = ({ navigation }) => {
             </View>
             <View style={styles.contactDetails}>
               <Text style={styles.contactTitle}>Corporate Office</Text>
-              <Text style={styles.contactSubtitle}>Silicon Valley, CA 94000</Text>
-              <Text style={styles.contactValue}>123 Grocery Lane, Fresh Valley</Text>
+              <Text style={styles.contactSubtitle}>Balrampur Bairagi tola</Text>
+              <Text style={styles.contactValue}>Katihar, Bihar, 854317</Text>
             </View>
             <ChevronRight size={18} color={theme.colors.textSecondary} />
           </TouchableOpacity>

@@ -298,21 +298,24 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
       if (data.status === 'success') {
         setIsVerifying(true);
         // Call backend verification & creation
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        
         try {
-          const response = await fetch(`${API_BASE_URL}/user/orders`, {
+          const response = await fetch(`${API_BASE_URL}/user/orders/verify`, {
             method: 'POST',
             headers: {
               ...api.getHeaders?.()
             },
+            signal: controller.signal,
             body: JSON.stringify({
-              ...orderPayload,
-              paymentDetails: {
-                razorpayPaymentId: data.razorpay_payment_id,
-                razorpayOrderId: data.razorpay_order_id,
-                razorpaySignature: data.razorpay_signature
-              }
+              orderId: orderId,
+              razorpayPaymentId: data.razorpay_payment_id,
+              razorpayOrderId: data.razorpay_order_id,
+              razorpaySignature: data.razorpay_signature
             })
           });
+          clearTimeout(timeoutId);
 
           const resData = await response.json();
           if (response.ok && resData.success) {
@@ -574,7 +577,7 @@ export const PaymentWebViewScreen = ({ route, navigation }) => {
           {!isVerifying ? (
             <>
               <WebView
-                source={{ html: htmlContent }}
+                source={{ html: htmlContent, baseUrl: 'https://freshsabjihub.com' }}
                 style={styles.webView}
                 onMessage={onMessage}
                 onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}

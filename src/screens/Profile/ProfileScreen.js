@@ -59,7 +59,7 @@ Founded with a vision to streamline household supplies, we coordinate with local
 const CONTACT_CONTENT = `Need help with an active order or have feedback for our team? Reach out to us:
 
 📧 Email Support: support@freshsabjihub.com
-📞 Phone Support: +91 1800-419-0099
+📞 Phone Support: +91 9102305498
 🕒 Operating Hours: 6:00 AM - 11:00 PM (All days)
 
 We aim to resolve all email inquiries within 2 hours.`;

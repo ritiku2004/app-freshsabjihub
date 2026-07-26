@@ -1,6 +1,7 @@
 import React, { useContext, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, Share, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Share, Alert } from 'react-native';
+import { Image } from 'expo-image';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,6 +15,7 @@ import { Loader } from '../../components/Loader';
 import { AuthContext } from '../../context/AuthContext';
 import styles from './styles';
 import { moderateScale } from '../../utils/responsive';
+import { formatImageUrl } from '../../utils/formatImageUrl';
 
 export const ProductDetailsScreen = ({ route, navigation }) => {
   const { productId } = route.params || {};
@@ -131,7 +133,12 @@ export const ProductDetailsScreen = ({ route, navigation }) => {
       >
         {/* Visual Product Card Image */}
         <View style={styles.imageCard}>
-          <Image source={{ uri: image }} style={styles.image} resizeMode="contain" />
+          <Image 
+            source={{ uri: formatImageUrl(image) }} 
+            style={styles.image} 
+            contentFit="contain" 
+            transition={200}
+          />
           {stock <= 0 && (
             <View style={styles.outOfStockOverlay}>
               <Text style={styles.outOfStockText}>OUT OF STOCK</Text>
@@ -181,12 +188,12 @@ export const ProductDetailsScreen = ({ route, navigation }) => {
             <Text style={styles.sectionTitle}>Specifications</Text>
             <View style={{ marginTop: moderateScale(8) }}>
               {product.features.map((item, index) => (
-                <View 
-                  key={index} 
-                  style={{ 
-                    flexDirection: 'row', 
-                    paddingVertical: moderateScale(10), 
-                    borderBottomWidth: index === product.features.length - 1 ? 0 : 1, 
+                <View
+                  key={index}
+                  style={{
+                    flexDirection: 'row',
+                    paddingVertical: moderateScale(10),
+                    borderBottomWidth: index === product.features.length - 1 ? 0 : 1,
                     borderBottomColor: '#f1f5f9',
                     alignItems: 'center'
                   }}

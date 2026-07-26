@@ -7,14 +7,16 @@ import {
   Image,
   ActivityIndicator,
   Alert,
-  Linking
+  Linking,
+  Modal,
+  TextInput
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
-import { ArrowLeft, CheckCircle2, Circle, Download } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle2, Circle, Download, Star } from 'lucide-react-native';
 import { theme } from '../../theme';
 import { api } from '../../services/api';
 import { API_BASE_URL } from '../../config/env';
@@ -27,6 +29,10 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
   const [order, setOrder] = useState(initialOrder);
   const [loading, setLoading] = useState(!initialOrder);
   const [downloading, setDownloading] = useState(false);
+  const [ratingInput, setRatingInput] = useState(0);
+  const [commentInput, setCommentInput] = useState('');
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
   const insets = useSafeAreaInsets();
   const { user } = useContext(AuthContext);
 
@@ -67,7 +73,9 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
               quantity: item.quantity,
               price: Number(item.price),
               image: item.image_url
-            }))
+            })),
+            rating: o.rating,
+            reviewComment: o.review_comment
           };
         });
 
@@ -205,6 +213,35 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
     }
   };
 
+  const handleReviewSubmit = async () => {
+    if (ratingInput < 1 || ratingInput > 5) return;
+    setSubmittingReview(true);
+    try {
+      const orderIdentifier = order.dbId || order.id;
+      const response = await fetch(`${API_BASE_URL}/user/orders/${orderIdentifier}/review`, {
+        method: 'POST',
+        headers: api.getHeaders(),
+        body: JSON.stringify({ rating: ratingInput, comment: commentInput })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to submit review');
+      }
+      setOrder(prev => ({
+        ...prev,
+        rating: ratingInput,
+        reviewComment: commentInput
+      }));
+      setShowReviewModal(false);
+      Alert.alert('Success', 'Thank you for your feedback!');
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Error', err.message);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Animated Gradient Header */}
@@ -316,6 +353,40 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
           </View>
         </View>
 
+        {/* Customer Feedback */}
+        {order.status === 'Delivered' && (
+          <View style={styles.detailsCard}>
+            <Text style={styles.sectionHeader}>Customer Feedback</Text>
+            {order.rating ? (
+              <View>
+                <View style={{ flexDirection: 'row', marginBottom: 8 }}>
+                  {[1,2,3,4,5].map(star => (
+                    <Star key={star} size={20} fill={star <= order.rating ? '#ffc107' : 'none'} color={star <= order.rating ? '#ffc107' : '#e0e0e0'} style={{ marginRight: 4 }} />
+                  ))}
+                </View>
+                {!!order.reviewComment && (
+                  <Text style={{ fontStyle: 'italic', color: '#555', marginTop: 4 }}>"{order.reviewComment}"</Text>
+                )}
+              </View>
+            ) : (
+              <View>
+                <Text style={{ color: '#666', marginBottom: 12 }}>Rate your experience with this order</Text>
+                <View style={{ flexDirection: 'row' }}>
+                  {[1,2,3,4,5].map(star => (
+                    <TouchableOpacity 
+                      key={star} 
+                      onPress={() => { setRatingInput(star); setShowReviewModal(true); }}
+                      style={{ padding: 4 }}
+                    >
+                      <Star size={32} fill={star <= ratingInput ? '#ffc107' : 'none'} color={star <= ratingInput ? '#ffc107' : '#e0e0e0'} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Order Info Card */}
         <View style={styles.detailsCard}>
           <Text style={styles.sectionHeader}>Summary</Text>
@@ -423,6 +494,45 @@ export const OrderDetailsScreen = ({ route, navigation }) => {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Review Bottom Drawer Modal */}
+      <Modal
+        visible={showReviewModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowReviewModal(false)}
+      >
+        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }} activeOpacity={1} onPress={() => setShowReviewModal(false)}>
+          <TouchableOpacity activeOpacity={1} style={{ backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: Math.max(insets.bottom, 24) }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Tell us more</Text>
+              <TouchableOpacity onPress={() => setShowReviewModal(false)}>
+                <Text style={{ fontSize: 24, color: '#666' }}>&times;</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={{ color: '#666', marginBottom: 16 }}>You rated this order {ratingInput} stars. Any specific feedback?</Text>
+            <TextInput
+              style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, height: 100, textAlignVertical: 'top', marginBottom: 16, fontSize: 16 }}
+              placeholder="Write a comment (optional)..."
+              multiline
+              value={commentInput}
+              onChangeText={setCommentInput}
+            />
+            <TouchableOpacity 
+              onPress={handleReviewSubmit}
+              disabled={submittingReview}
+              style={{ backgroundColor: submittingReview ? '#ccc' : theme.colors.primary, padding: 16, borderRadius: 12, alignItems: 'center' }}
+            >
+              {submittingReview ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Submit Feedback</Text>
+              )}
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
     </View>
   );
 };
